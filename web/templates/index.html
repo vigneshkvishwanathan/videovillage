@@ -30,7 +30,7 @@
   <tr><th></th><th>Score</th><th>Title</th><th>Year</th><th>Director</th><th>Genres</th><th>Format</th><th>Label</th><th>Viewed</th><th></th></tr>
   {% for disc in discs %}
   <tr>
-    <td>{% if disc.poster_path %}<img src="{{ poster_base }}{{ disc.poster_path }}" width="46" alt="">{% endif %}</td>
+        <td>{% if disc.poster_path %}<img src="{{ poster_base }}{{ disc.poster_path }}" class="poster" alt="">{% endif %}</td>
     <td>{{ "%g"|format(disc.score) if disc.score is not none else "–" }}</td>
     <td>{{ disc.title }}</td>
     <td>{{ disc.release_year or "" }}</td>
