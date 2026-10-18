@@ -27,7 +27,7 @@ def score(disc):
     ratings = [disc[field] for field in RATING_FIELDS]
     if None in ratings:
         return None
-    return float(sum(ratings)) * 5 + disc["viewings"] - 1
+    return float(sum(ratings)) * 4 + disc["viewings"] - 1
 
 def parse_genres(checked, typed, known):
     """Combine ticked genres with newly typed ones ("Epic, Heist").
