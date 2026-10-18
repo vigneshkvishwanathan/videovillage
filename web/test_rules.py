@@ -1,6 +1,6 @@
 import pytest
 
-from rules import parse_genres, parse_rating, score, sort_discs, watched_rule_error
+from rules import parse_genres, parse_rating, score, score_band, sort_discs, watched_rule_error
 
 
 def make_disc(audio=None, video=None, overall=None, rewatch=None, viewings=0):
@@ -105,3 +105,16 @@ def test_sort_by_year_is_newest_first_with_unknown_last():
 def test_sort_by_title_ignores_capitals():
     discs = [make_row("heat"), make_row("Alien"), make_row("Casino")]
     assert titles(sort_discs(discs, "title")) == ["Alien", "Casino", "heat"]
+
+# --- Score badges ---
+
+@pytest.mark.parametrize("disc_score, band", [
+    (None, "none"),
+    (102, "top"),
+    (90, "top"),
+    (89.5, "good"),
+    (75, "good"),
+    (74.5, "low"),
+])
+def test_score_band(disc_score, band):
+    assert score_band(disc_score) == band

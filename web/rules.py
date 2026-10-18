@@ -63,3 +63,13 @@ def sort_discs(discs, by):
         discs,
         key=lambda d: (d["score"] is None, -(d["score"] or 0), d["title"].lower()),
     )
+    
+def score_band(disc_score):
+    """Which colour a score badge gets: "top", "good", "low", or "none" when unscored."""
+    if disc_score is None:
+        return "none"
+    if disc_score >= 90:
+        return "top"
+    if disc_score >= 75:
+        return "good"
+    return "low"

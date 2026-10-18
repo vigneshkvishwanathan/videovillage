@@ -10,39 +10,54 @@
 
 <form method="get">
   <input type="hidden" name="view" value="{{ view }}">
-  <input name="q" value="{{ filters.q }}" placeholder="Title, director or actor">
-  <select name="format">
-    <option value="">Any format</option>
-    {% for f in formats %}<option {{ "selected" if filters.format == f }}>{{ f }}</option>{% endfor %}
-  </select>
-  <select name="genre">
-    <option value="">Any genre</option>
-    {% for g in genres %}<option {{ "selected" if filters.genre == g }}>{{ g }}</option>{% endfor %}
-  </select>
-  <select name="sort">
-    {% for value, label in sorts %}<option value="{{ value }}" {{ "selected" if filters.sort == value }}>{{ label }}</option>{% endfor %}
-  </select>
-  <button>Apply</button>
-  <a href="{{ url_for('index', view=view) }}">Clear</a>
+  <fieldset role="group">
+    <input name="q" value="{{ filters.q }}" placeholder="Title, director or actor">
+    <select name="format">
+      <option value="">Any format</option>
+      {% for f in formats %}<option {{ "selected" if filters.format == f }}>{{ f }}</option>{% endfor %}
+    </select>
+    <select name="genre">
+      <option value="">Any genre</option>
+      {% for g in genres %}<option {{ "selected" if filters.genre == g }}>{{ g }}</option>{% endfor %}
+    </select>
+    <select name="sort">
+      {% for value, label in sorts %}<option value="{{ value }}" {{ "selected" if filters.sort == value }}>{{ label }}</option>{% endfor %}
+    </select>
+    <button>Apply</button>
+  </fieldset>
+  <small><a href="{{ url_for('index', view=view) }}">Clear filters</a></small>
 </form>
 
-<table>
-  <tr><th></th><th>Score</th><th>Title</th><th>Year</th><th>Director</th><th>Genres</th><th>Format</th><th>Label</th><th>Viewed</th><th></th></tr>
+<div class="overflow-auto">
+<table class="discs">
+  <thead>
+    <tr><th></th><th>Score</th><th>Title</th><th>Format</th><th>Genres</th><th>Specs</th></tr>
+  </thead>
+  <tbody>
   {% for disc in discs %}
-  <tr>
-        <td>{% if disc.poster_path %}<img src="{{ poster_base }}{{ disc.poster_path }}" class="poster" alt="">{% endif %}</td>
-    <td>{{ "%g"|format(disc.score) if disc.score is not none else "–" }}</td>
-    <td>{{ disc.title }}</td>
-    <td>{{ disc.release_year or "" }}</td>
-    <td>{{ disc.directors or "" }}</td>
-    <td>{{ disc.genres | join(", ") }}</td>
-    <td>{{ disc.disc_format }}</td>
-    <td>{{ disc.label or "" }}</td>
-    <td>{{ disc.viewings }}</td>
-    <td><a href="{{ url_for('edit_disc', disc_id=disc.id) }}">Edit</a></td>
-  </tr>
+    {% set made = [disc.release_year, disc.directors] | select | join(" · ") %}
+    {% set ratio = "%.2f:1" | format(disc.aspect_ratio) if disc.aspect_ratio else none %}
+    {% set spec_1 = [disc.label, ratio] | select | join(" · ") %}
+    {% set spec_2 = [disc.video_format, disc.audio_format] | select | join(" · ") %}
+    <tr>
+      <td>{% if disc.poster_path %}<img src="{{ poster_base }}{{ disc.poster_path }}" class="poster" alt="">{% endif %}</td>
+      <td><span class="score score-{{ disc.band }}">{{ "%g" | format(disc.score) if disc.score is not none else "–" }}</span></td>
+      <td>
+        <a class="title-link" href="{{ url_for('edit_disc', disc_id=disc.id) }}">{{ disc.title }}</a>
+        {% if made %}<div class="sub">{{ made }}</div>{% endif %}
+      </td>
+      <td><span class="pill{{ ' pill-4k' if disc.disc_format == '4K UHD' }}">{{ disc.disc_format }}</span></td>
+      <td>{% for g in disc.genres %}<span class="pill">{{ g }}</span>{% endfor %}</td>
+      <td class="spec">
+        {% if spec_1 %}<div>{{ spec_1 }}</div>{% endif %}
+        {% if spec_2 %}<div>{{ spec_2 }}</div>{% endif %}
+        <div>{{ "Watched %d×" | format(disc.viewings) if disc.viewings else "Not watched yet" }}</div>
+      </td>
+    </tr>
   {% else %}
-  <tr><td colspan="10">Nothing here{{ " matches those filters" if filters.q or filters.format or filters.genre }}.</td></tr>
+    <tr><td colspan="6">Nothing here{{ " matches those filters" if filters.q or filters.format or filters.genre }}.</td></tr>
   {% endfor %}
+  </tbody>
 </table>
+</div>
 {% endblock %}

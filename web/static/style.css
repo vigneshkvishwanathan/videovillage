@@ -1,0 +1,62 @@
+/* Video Village: a few additions on top of Pico.css */
+
+/* Posters: a fixed size, so a busy table can't squeeze them */
+.poster {
+  width: 40px;
+  min-width: 40px;
+  height: auto;
+  border-radius: 4px;
+  display: block;
+}
+
+/* Rows: centred vertically, gently highlighted under the mouse */
+.discs td {
+  vertical-align: middle;
+}
+.discs tbody tr:hover td {
+  background: rgba(127, 127, 127, 0.08);
+}
+
+/* Title in bold, with the year and director in small grey text underneath */
+.title-link {
+  font-weight: 600;
+  text-decoration: none;
+}
+.sub,
+.spec {
+  font-size: 0.8rem;
+  color: var(--pico-muted-color);
+}
+.spec {
+  line-height: 1.4;
+}
+
+/* Score badges: the colour comes from score_band() in rules.py */
+.score {
+  display: inline-block;
+  min-width: 3.2rem;
+  padding: 0.2rem 0.5rem;
+  border-radius: 0.4rem;
+  text-align: center;
+  font-weight: 600;
+}
+.score-top  { background: rgba(46, 160, 67, 0.22); }
+.score-good { background: rgba(59, 130, 246, 0.18); }
+.score-low  { background: rgba(127, 127, 127, 0.15); }
+.score-none { color: var(--pico-muted-color); }
+
+/* Pills: format and genres as small rounded tags; 4K gets the accent colour */
+.pill {
+  display: inline-block;
+  margin: 0.1rem 0.25rem 0.1rem 0;
+  padding: 0.05rem 0.55rem;
+  border: 1px solid var(--pico-muted-border-color);
+  border-radius: 999px;
+  font-size: 0.72rem;
+  color: var(--pico-muted-color);
+  white-space: nowrap;
+}
+.pill-4k {
+  border-color: var(--pico-primary);
+  color: var(--pico-primary);
+}

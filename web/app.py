@@ -12,6 +12,7 @@ from rules import (  # NEW: two more rules
     parse_genres,
     parse_rating,
     score,
+    score_band,
     sort_discs,
     watched_rule_error,
 )
@@ -224,6 +225,7 @@ def index():
 
     for disc in discs:
         disc["score"] = score(disc)
+        disc["band"] = score_band(disc["score"])  # NEW: which colour its badge gets
     discs = sort_discs(discs, filters["sort"])  # NEW: sorting moved into rules.py
 
     return render_template(
