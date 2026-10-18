@@ -9,5 +9,17 @@ services:
       - db-data:/var/lib/postgresql
       - ./db/schema.sql:/docker-entrypoint-initdb.d/schema.sql
 
+  web:
+    build: ./web
+    ports:
+      - "8000:5000"
+    environment:
+      DATABASE_URL: postgresql://moviedb:moviedb@db:5432/moviedb
+      FLASK_DEBUG: "1"
+    volumes:
+      - ./web:/app
+    depends_on:
+      - db
+
 volumes:
   db-data:

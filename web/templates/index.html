@@ -1,0 +1,18 @@
+<!doctype html>
+<html>
+<head><title>Video Village</title></head>
+<body>
+  <h1>Video Village</h1>
+  <table>
+    <tr><th>Title</th><th>Year</th><th>Format</th><th>Owned</th></tr>
+    {% for disc in discs %}
+    <tr>
+      <td>{{ disc.title }}</td>
+      <td>{{ disc.release_year or "" }}</td>
+      <td>{{ disc.disc_format }}</td>
+      <td>{{ "Yes" if disc.owned else "Wishlist" }}</td>
+    </tr>
+    {% endfor %}
+  </table>
+</body>
+</html>
