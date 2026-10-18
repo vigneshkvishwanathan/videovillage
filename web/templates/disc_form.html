@@ -17,6 +17,18 @@
   <p><label>Video format <input name="video_format" value="{{ disc.video_format or '' }}"></label></p>
   <p><label>Aspect ratio <input name="aspect_ratio" type="number" step="0.01" min="0.01" value="{{ disc.aspect_ratio or '' }}"> :1</label></p>
   <p><label><input type="checkbox" name="owned" {{ "checked" if disc.owned }}> I own this</label></p>
+    <h3>Watched & rated</h3>
+  <p><label>Viewings <input name="viewings" type="number" min="0" value="{{ disc.viewings or 0 }}"></label></p>
+  {% for field, label in ratings %}
+  <p><label>{{ label }}
+    <select name="{{ field }}">
+      <option value="">–</option>
+      {% for r in rating_choices %}
+      <option value="{{ r }}" {{ "selected" if disc[field] == r }}>{{ "%g"|format(r) }}</option>
+      {% endfor %}
+    </select>
+  </label></p>
+  {% endfor %}
   <p><label>Notes<br><textarea name="notes" rows="3">{{ disc.notes or '' }}</textarea></label></p>
   <button>Save</button>
   <a href="{{ url_for('index') }}">Cancel</a>

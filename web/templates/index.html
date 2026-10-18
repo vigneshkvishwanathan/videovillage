@@ -2,13 +2,15 @@
 {% block content %}
 <p><a href="{{ url_for('add_disc') }}">+ Add a disc</a></p>
 <table>
-  <tr><th>Title</th><th>Year</th><th>Format</th><th>Label</th><th>Owned</th><th></th></tr>
+  <tr><th>Score</th><th>Title</th><th>Year</th><th>Format</th><th>Label</th><th>Viewed</th><th>Owned</th><th></th></tr>
   {% for disc in discs %}
   <tr>
+    <td>{{ "%g"|format(disc.score) if disc.score is not none else "–" }}</td>
     <td>{{ disc.title }}</td>
     <td>{{ disc.release_year or "" }}</td>
     <td>{{ disc.disc_format }}</td>
     <td>{{ disc.label or "" }}</td>
+    <td>{{ disc.viewings }}</td>
     <td>{{ "Yes" if disc.owned else "Wishlist" }}</td>
     <td><a href="{{ url_for('edit_disc', disc_id=disc.id) }}">Edit</a></td>
   </tr>

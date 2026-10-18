@@ -4,10 +4,19 @@ import psycopg
 from psycopg.rows import dict_row
 from flask import Flask, abort, redirect, render_template, request, url_for
 
+from rules import RATING_FIELDS, parse_rating, score, watched_rule_error  # NEW
+
 app = Flask(__name__)
 DATABASE_URL = os.environ["DATABASE_URL"]
 
 FORMATS = ["4K UHD", "Blu-ray"]
+RATING_LABELS = {  # NEW: what each rating is called on screen
+    "audio_rating": "Audio",
+    "video_rating": "Video",
+    "overall_rating": "Overall",
+    "rewatch_rating": "Rewatchability",
+}
+RATING_CHOICES = [n / 2 for n in range(11)]  # NEW: 0, 0.5, 1 ... 5
 
 
 def db():
@@ -43,6 +52,14 @@ def read_form(form):
         ratio = None
         errors.append("Aspect ratio must be a number, like 2.39.")
 
+    try:  # NEW
+        viewings = clean_number(form.get("viewings"), int) or 0
+        if viewings < 0:
+            raise ValueError
+    except ValueError:
+        viewings = 0
+        errors.append("Viewings must be 0 or more.")
+
     disc = {
         "title": clean_text(form.get("title")),
         "release_year": year,
@@ -53,20 +70,51 @@ def read_form(form):
         "aspect_ratio": ratio,
         "owned": form.get("owned") == "on",
         "notes": clean_text(form.get("notes")),
+        "viewings": viewings,  # NEW
     }
+
+    for field in RATING_FIELDS:  # NEW
+        try:
+            disc[field] = parse_rating(form.get(field))
+        except ValueError:
+            disc[field] = None
+            errors.append("Ratings go from 0 to 5 in steps of 0.5.")
 
     if not disc["title"]:
         errors.append("Title is required.")
     if disc["disc_format"] not in FORMATS:
         errors.append("Pick a disc format.")
 
+    rule_error = watched_rule_error(disc)  # NEW
+    if rule_error:
+        errors.append(rule_error)
+
     return disc, errors
+
+
+def show_form(disc, errors, disc_id=None):  # NEW: one place that renders the form
+    return render_template(
+        "disc_form.html",
+        disc=disc,
+        errors=errors,
+        disc_id=disc_id,
+        formats=FORMATS,
+        ratings=RATING_LABELS.items(),
+        rating_choices=RATING_CHOICES,
+    )
 
 
 @app.route("/")
 def index():
     with db() as conn:
-        discs = conn.execute("SELECT * FROM discs ORDER BY title").fetchall()
+        discs = conn.execute("SELECT * FROM discs").fetchall()
+
+    for disc in discs:  # NEW
+        disc["score"] = score(disc)
+
+    # NEW: highest score first; unscored discs go to the bottom, by title.
+    discs.sort(key=lambda d: (d["score"] is None, -(d["score"] or 0), d["title"].lower()))
+
     return render_template("index.html", discs=discs)
 
 
@@ -80,14 +128,18 @@ def add_disc():
                 conn.execute(
                     """
                     INSERT INTO discs (title, release_year, disc_format, label,
-                                       audio_format, video_format, aspect_ratio, owned, notes)
+                                       audio_format, video_format, aspect_ratio, owned, notes,
+                                       viewings, audio_rating, video_rating,
+                                       overall_rating, rewatch_rating)
                     VALUES (%(title)s, %(release_year)s, %(disc_format)s, %(label)s,
-                            %(audio_format)s, %(video_format)s, %(aspect_ratio)s, %(owned)s, %(notes)s)
+                            %(audio_format)s, %(video_format)s, %(aspect_ratio)s, %(owned)s, %(notes)s,
+                            %(viewings)s, %(audio_rating)s, %(video_rating)s,
+                            %(overall_rating)s, %(rewatch_rating)s)
                     """,
                     disc,
                 )
             return redirect(url_for("index"))
-    return render_template("disc_form.html", disc=disc, errors=errors, formats=FORMATS)
+    return show_form(disc, errors)
 
 
 @app.route("/discs/<int:disc_id>/edit", methods=["GET", "POST"])
@@ -107,16 +159,17 @@ def edit_disc(disc_id):
                     SET title = %(title)s, release_year = %(release_year)s,
                         disc_format = %(disc_format)s, label = %(label)s,
                         audio_format = %(audio_format)s, video_format = %(video_format)s,
-                        aspect_ratio = %(aspect_ratio)s, owned = %(owned)s, notes = %(notes)s
+                        aspect_ratio = %(aspect_ratio)s, owned = %(owned)s, notes = %(notes)s,
+                        viewings = %(viewings)s, audio_rating = %(audio_rating)s,
+                        video_rating = %(video_rating)s, overall_rating = %(overall_rating)s,
+                        rewatch_rating = %(rewatch_rating)s
                     WHERE id = %(id)s
                     """,
                     {**disc, "id": disc_id},
                 )
                 return redirect(url_for("index"))
 
-    return render_template(
-        "disc_form.html", disc=disc, errors=errors, formats=FORMATS, disc_id=disc_id
-    )
+    return show_form(disc, errors, disc_id)
 
 
 @app.post("/discs/<int:disc_id>/delete")
