@@ -1,0 +1,31 @@
+{% extends "base.html" %}
+{% block content %}
+<h2>{{ "Edit disc" if disc_id else "Add a disc" }}</h2>
+
+{% for error in errors %}<p style="color: red">{{ error }}</p>{% endfor %}
+
+<form method="post">
+  <p><label>Title <input name="title" value="{{ disc.title or '' }}" required></label></p>
+  <p><label>Year <input name="release_year" type="number" value="{{ disc.release_year or '' }}"></label></p>
+  <p>Format
+    {% for f in formats %}
+    <label><input type="radio" name="disc_format" value="{{ f }}" {{ "checked" if disc.disc_format == f }}> {{ f }}</label>
+    {% endfor %}
+  </p>
+  <p><label>Label <input name="label" value="{{ disc.label or '' }}"></label></p>
+  <p><label>Audio format <input name="audio_format" value="{{ disc.audio_format or '' }}"></label></p>
+  <p><label>Video format <input name="video_format" value="{{ disc.video_format or '' }}"></label></p>
+  <p><label>Aspect ratio <input name="aspect_ratio" type="number" step="0.01" min="0.01" value="{{ disc.aspect_ratio or '' }}"> :1</label></p>
+  <p><label><input type="checkbox" name="owned" {{ "checked" if disc.owned }}> I own this</label></p>
+  <p><label>Notes<br><textarea name="notes" rows="3">{{ disc.notes or '' }}</textarea></label></p>
+  <button>Save</button>
+  <a href="{{ url_for('index') }}">Cancel</a>
+</form>
+
+{% if disc_id %}
+<form method="post" action="{{ url_for('delete_disc', disc_id=disc_id) }}"
+      onsubmit="return confirm('Delete this disc?')">
+  <button>Delete</button>
+</form>
+{% endif %}
+{% endblock %}
