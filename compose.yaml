@@ -11,6 +11,7 @@ services:
 
   web:
     build: ./web
+    command: flask --app app run --host 0.0.0.0 --port 5000
     ports:
       - "8000:5000"
     environment:

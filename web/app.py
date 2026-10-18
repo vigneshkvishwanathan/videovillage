@@ -1,9 +1,10 @@
+import hmac
 import os
 
 import psycopg
 import requests
 from psycopg.rows import dict_row
-from flask import Flask, abort, redirect, render_template, request, url_for
+from flask import Flask, Response, abort, redirect, render_template, request, url_for
 
 import tmdb
 from rules import (  # NEW: two more rules
@@ -157,6 +158,29 @@ def show_form(disc, errors, disc_id=None):
         suggestions=suggestions,
     )
 
+@app.route("/health")
+def health():
+    """For Render: "is the app up?" Deliberately skips the password and the database."""
+    return "ok"
+
+
+@app.before_request
+def require_password():
+    """Put the whole site behind one shared password, when APP_PASSWORD is set.
+
+    It isn't set on your Mac, so local development stays password-free.
+    """
+    password = os.environ.get("APP_PASSWORD")
+    if not password or request.endpoint == "health":
+        return None
+    auth = request.authorization
+    if auth and hmac.compare_digest((auth.password or "").encode(), password.encode()):
+        return None
+    return Response(
+        "This site needs a password.",
+        401,
+        {"WWW-Authenticate": 'Basic realm="Video Village"'},
+    )
 
 @app.route("/")
 def index():
