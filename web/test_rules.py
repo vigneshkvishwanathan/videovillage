@@ -1,6 +1,6 @@
 import pytest
 
-from rules import parse_rating, score, watched_rule_error
+from rules import parse_genres, parse_rating, score, sort_discs, watched_rule_error
 
 
 def make_disc(audio=None, video=None, overall=None, rewatch=None, viewings=0):
@@ -63,3 +63,45 @@ def test_unrated_and_unwatched_is_fine():
 
 def test_rated_after_watching_is_fine():
     assert watched_rule_error(make_disc(4, 4, 4, 4, viewings=1)) is None
+
+# --- Genres ---
+
+def test_typed_genres_are_split_and_trimmed():
+    assert parse_genres([], " Epic , War ,", []) == ["Epic", "War"]
+
+
+def test_typed_genre_reuses_the_existing_spelling():
+    assert parse_genres([], "sci-fi", ["Sci-Fi"]) == ["Sci-Fi"]
+
+
+def test_the_same_genre_is_only_kept_once():
+    assert parse_genres(["Drama"], "drama, Drama", ["Drama"]) == ["Drama"]
+
+
+def test_ticked_and_typed_genres_combine():
+    assert parse_genres(["Drama"], "Biopic", ["Drama"]) == ["Drama", "Biopic"]
+
+
+# --- Sorting ---
+
+def make_row(title, year=None, disc_score=None):
+    return {"title": title, "release_year": year, "score": disc_score}
+
+
+def titles(discs):
+    return [d["title"] for d in discs]
+
+
+def test_sort_by_score_puts_unscored_last():
+    discs = [make_row("B", disc_score=None), make_row("A", disc_score=80), make_row("C", disc_score=102)]
+    assert titles(sort_discs(discs, "score")) == ["C", "A", "B"]
+
+
+def test_sort_by_year_is_newest_first_with_unknown_last():
+    discs = [make_row("Old", 1995), make_row("Unknown"), make_row("New", 2023)]
+    assert titles(sort_discs(discs, "year")) == ["New", "Old", "Unknown"]
+
+
+def test_sort_by_title_ignores_capitals():
+    discs = [make_row("heat"), make_row("Alien"), make_row("Casino")]
+    assert titles(sort_discs(discs, "title")) == ["Alien", "Casino", "heat"]

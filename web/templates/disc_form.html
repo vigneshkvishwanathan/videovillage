@@ -25,11 +25,25 @@
     <label><input type="radio" name="disc_format" value="{{ f }}" {{ "checked" if disc.disc_format == f }}> {{ f }}</label>
     {% endfor %}
   </p>
-  <p><label>Label <input name="label" value="{{ disc.label or '' }}"></label></p>
-  <p><label>Audio format <input name="audio_format" value="{{ disc.audio_format or '' }}"></label></p>
-  <p><label>Video format <input name="video_format" value="{{ disc.video_format or '' }}"></label></p>
+  <p><label>Label <input name="label" list="label-options" value="{{ disc.label or '' }}"></label></p>
+  <p><label>Audio format <input name="audio_format" list="audio-options" value="{{ disc.audio_format or '' }}"></label></p>
+  <p><label>Video format <input name="video_format" list="video-options" value="{{ disc.video_format or '' }}"></label></p>
   <p><label>Aspect ratio <input name="aspect_ratio" type="number" step="0.01" min="0.01" value="{{ disc.aspect_ratio or '' }}"> :1</label></p>
-  <p><label><input type="checkbox" name="owned" {{ "checked" if disc.owned }}> I own this</label></p>
+  <p><label><input type="checkbox" name="owned" {{ "checked" if disc.owned }}> I own this (untick for the wishlist)</label></p>
+
+  <datalist id="label-options">{% for v in suggestions.label %}<option value="{{ v }}">{% endfor %}</datalist>
+  <datalist id="audio-options">{% for v in suggestions.audio_format %}<option value="{{ v }}">{% endfor %}</datalist>
+  <datalist id="video-options">{% for v in suggestions.video_format %}<option value="{{ v }}">{% endfor %}</datalist>
+
+  <h3>Genres</h3>
+  <p>
+    {% for g in genre_choices %}
+    <label style="white-space: nowrap; margin-right: 8px">
+      <input type="checkbox" name="genres" value="{{ g }}" {{ "checked" if g in (disc.genres or []) }}> {{ g }}
+    </label>
+    {% endfor %}
+  </p>
+  <p><label>New genres <input name="new_genres" placeholder="e.g. Biopic, Heist"></label></p>
 
   <h3>Watched & rated</h3>
   <p><label>Viewings <input name="viewings" type="number" min="0" value="{{ disc.viewings or 0 }}"></label></p>

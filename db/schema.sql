@@ -13,6 +13,7 @@ CREATE TABLE discs (
     audio_format    TEXT,
     video_format    TEXT,
     aspect_ratio    NUMERIC(4, 2) CHECK (aspect_ratio > 0),
+    genres          TEXT[] NOT NULL DEFAULT '{}',
     owned           BOOLEAN NOT NULL DEFAULT false,
     notes           TEXT,
     viewings        INTEGER NOT NULL DEFAULT 0 CHECK (viewings >= 0),

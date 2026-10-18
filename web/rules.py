@@ -28,3 +28,38 @@ def score(disc):
     if None in ratings:
         return None
     return float(sum(ratings)) * 5 + disc["viewings"] - 1
+
+def parse_genres(checked, typed, known):
+    """Combine ticked genres with newly typed ones ("Epic, Heist").
+
+    Trims spaces, drops blanks and duplicates, and reuses the existing spelling
+    when a typed genre matches a known one, so "sci-fi" becomes "Sci-Fi".
+    """
+    spelling = {name.lower(): name for name in known}
+    result = []
+    for name in list(checked) + (typed or "").split(","):
+        name = name.strip()
+        if not name:
+            continue
+        name = spelling.get(name.lower(), name)
+        if name.lower() not in [g.lower() for g in result]:
+            result.append(name)
+    return result
+
+
+def sort_discs(discs, by):
+    """Sort by "title", "year" (newest first) or, by default, "score" (highest first).
+
+    Discs missing the thing being sorted on go to the bottom, in title order.
+    """
+    if by == "title":
+        return sorted(discs, key=lambda d: d["title"].lower())
+    if by == "year":
+        return sorted(
+            discs,
+            key=lambda d: (d["release_year"] is None, -(d["release_year"] or 0), d["title"].lower()),
+        )
+    return sorted(
+        discs,
+        key=lambda d: (d["score"] is None, -(d["score"] or 0), d["title"].lower()),
+    )

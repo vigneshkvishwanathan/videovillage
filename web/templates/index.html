@@ -1,8 +1,33 @@
 {% extends "base.html" %}
 {% block content %}
-<p><a href="{{ url_for('search_tmdb') }}">+ Add a disc</a></p>
+<p>
+  <a href="{{ url_for('index') }}" style="font-weight: {{ 'bold' if view == 'collection' else 'normal' }}">Collection ({{ counts.collection }})</a>
+  |
+  <a href="{{ url_for('index', view='wishlist') }}" style="font-weight: {{ 'bold' if view == 'wishlist' else 'normal' }}">Wishlist ({{ counts.wishlist }})</a>
+  |
+  <a href="{{ url_for('search_tmdb') }}">+ Add a disc</a>
+</p>
+
+<form method="get">
+  <input type="hidden" name="view" value="{{ view }}">
+  <input name="q" value="{{ filters.q }}" placeholder="Title, director or actor">
+  <select name="format">
+    <option value="">Any format</option>
+    {% for f in formats %}<option {{ "selected" if filters.format == f }}>{{ f }}</option>{% endfor %}
+  </select>
+  <select name="genre">
+    <option value="">Any genre</option>
+    {% for g in genres %}<option {{ "selected" if filters.genre == g }}>{{ g }}</option>{% endfor %}
+  </select>
+  <select name="sort">
+    {% for value, label in sorts %}<option value="{{ value }}" {{ "selected" if filters.sort == value }}>{{ label }}</option>{% endfor %}
+  </select>
+  <button>Apply</button>
+  <a href="{{ url_for('index', view=view) }}">Clear</a>
+</form>
+
 <table>
-  <tr><th></th><th>Score</th><th>Title</th><th>Year</th><th>Director</th><th>Format</th><th>Label</th><th>Viewed</th><th>Owned</th><th></th></tr>
+  <tr><th></th><th>Score</th><th>Title</th><th>Year</th><th>Director</th><th>Genres</th><th>Format</th><th>Label</th><th>Viewed</th><th></th></tr>
   {% for disc in discs %}
   <tr>
     <td>{% if disc.poster_path %}<img src="{{ poster_base }}{{ disc.poster_path }}" width="46" alt="">{% endif %}</td>
@@ -10,12 +35,14 @@
     <td>{{ disc.title }}</td>
     <td>{{ disc.release_year or "" }}</td>
     <td>{{ disc.directors or "" }}</td>
+    <td>{{ disc.genres | join(", ") }}</td>
     <td>{{ disc.disc_format }}</td>
     <td>{{ disc.label or "" }}</td>
     <td>{{ disc.viewings }}</td>
-    <td>{{ "Yes" if disc.owned else "Wishlist" }}</td>
     <td><a href="{{ url_for('edit_disc', disc_id=disc.id) }}">Edit</a></td>
   </tr>
+  {% else %}
+  <tr><td colspan="10">Nothing here{{ " matches those filters" if filters.q or filters.format or filters.genre }}.</td></tr>
   {% endfor %}
 </table>
 {% endblock %}
