@@ -4,7 +4,20 @@
 
 {% for error in errors %}<p style="color: red">{{ error }}</p>{% endfor %}
 
+{% if disc.poster_path or disc.directors %}
+<div style="overflow: hidden">
+  {% if disc.poster_path %}
+  <img src="{{ poster_base }}{{ disc.poster_path }}" width="120" alt="" style="float: left; margin-right: 12px">
+  {% endif %}
+  {% if disc.directors %}<p>Directed by {{ disc.directors }}</p>{% endif %}
+  {% if disc.top_cast %}<p>Starring {{ disc.top_cast }}</p>{% endif %}
+  {% if disc.runtime_minutes %}<p>{{ disc.runtime_minutes }} minutes</p>{% endif %}
+  {% if disc.overview %}<p>{{ disc.overview }}</p>{% endif %}
+</div>
+{% endif %}
+
 <form method="post">
+  <input type="hidden" name="tmdb_id" value="{{ disc.tmdb_id or '' }}">
   <p><label>Title <input name="title" value="{{ disc.title or '' }}" required></label></p>
   <p><label>Year <input name="release_year" type="number" value="{{ disc.release_year or '' }}"></label></p>
   <p>Format
@@ -17,7 +30,8 @@
   <p><label>Video format <input name="video_format" value="{{ disc.video_format or '' }}"></label></p>
   <p><label>Aspect ratio <input name="aspect_ratio" type="number" step="0.01" min="0.01" value="{{ disc.aspect_ratio or '' }}"> :1</label></p>
   <p><label><input type="checkbox" name="owned" {{ "checked" if disc.owned }}> I own this</label></p>
-    <h3>Watched & rated</h3>
+
+  <h3>Watched & rated</h3>
   <p><label>Viewings <input name="viewings" type="number" min="0" value="{{ disc.viewings or 0 }}"></label></p>
   {% for field, label in ratings %}
   <p><label>{{ label }}
@@ -29,6 +43,7 @@
     </select>
   </label></p>
   {% endfor %}
+
   <p><label>Notes<br><textarea name="notes" rows="3">{{ disc.notes or '' }}</textarea></label></p>
   <button>Save</button>
   <a href="{{ url_for('index') }}">Cancel</a>

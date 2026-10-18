@@ -1,0 +1,23 @@
+{% extends "base.html" %}
+{% block content %}
+<h2>Add a disc</h2>
+
+<form method="get">
+  <input name="q" value="{{ query }}" placeholder="Search for a film" autofocus>
+  <button>Search</button>
+</form>
+
+{% if error %}<p style="color: red">{{ error }}</p>{% endif %}
+
+{% for movie in results %}
+<p>
+  {% if movie.poster_path %}<img src="{{ poster_base }}{{ movie.poster_path }}" width="46" alt="">{% endif %}
+  {{ movie.title }}{% if movie.year %} ({{ movie.year }}){% endif %}
+  — <a href="{{ url_for('add_disc', tmdb_id=movie.tmdb_id) }}">Add this one</a>
+</p>
+{% else %}
+  {% if query and not error %}<p>No films found for "{{ query }}".</p>{% endif %}
+{% endfor %}
+
+<p><a href="{{ url_for('add_disc') }}">Or enter a disc by hand</a></p>
+{% endblock %}

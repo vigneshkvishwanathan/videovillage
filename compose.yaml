@@ -16,6 +16,7 @@ services:
     environment:
       DATABASE_URL: postgresql://moviedb:moviedb@db:5432/moviedb
       FLASK_DEBUG: "1"
+      TMDB_API_KEY: ${TMDB_API_KEY}
     volumes:
       - ./web:/app
     depends_on:
