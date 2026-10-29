@@ -22,7 +22,8 @@ rate them, and see them ranked by score.
 | Database | PostgreSQL, one table, plain SQL (no ORM) |
 | Running it | Docker Compose: a `web` container and a `db` container |
 | Tests | pytest, run inside the Docker image |
-| CI | GitHub Actions: build the image and run the tests on every push |
+| CI | GitHub Actions: build the image once, run the tests inside it, push it to GitHub Container Registry |
+| Deploy | Render runs that exact image, triggered by CI only after the tests pass |
 
 ## Run it locally
 
