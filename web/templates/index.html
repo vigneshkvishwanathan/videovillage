@@ -36,7 +36,7 @@
   <tbody>
   {% for disc in discs %}
     {% set made = [disc.release_year, disc.directors] | select | join(" · ") %}
-    {% set ratio = "%.2f:1" | format(disc.aspect_ratio) if disc.aspect_ratio else none %}
+    {% set ratio = (disc.aspect_ratios | join(":1, ")) ~ ":1" if disc.aspect_ratios else none %}
     {% set spec_1 = [disc.label, ratio] | select | join(" · ") %}
     {% set spec_2 = [disc.video_format, disc.audio_format] | select | join(" · ") %}
     <tr>

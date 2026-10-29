@@ -45,3 +45,20 @@ def test_used_values_refuses_a_column_not_on_the_list():
 
 def test_a_blank_box_becomes_none():
     assert clean_text("   ") is None
+    
+def test_two_aspect_ratios_are_saved():
+    form = valid_form()
+    form.setlist("aspect_ratios", ["2.39", "1.78"])
+    disc, errors = read_form(form, GENRES)
+    assert errors == []
+    assert disc["aspect_ratios"] == [2.39, 1.78]
+
+
+def test_a_typed_aspect_ratio_is_added():
+    disc, errors = read_form(valid_form(new_aspect_ratio="2.40:1"), GENRES)
+    assert disc["aspect_ratios"] == [2.4]
+
+
+def test_a_bad_aspect_ratio_is_refused():
+    disc, errors = read_form(valid_form(new_aspect_ratio="abc"), GENRES)
+    assert any("aspect" in e.lower() for e in errors)

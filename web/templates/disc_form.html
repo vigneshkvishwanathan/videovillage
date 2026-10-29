@@ -28,7 +28,12 @@
   <p><label>Label <input name="label" list="label-options" value="{{ disc.label or '' }}"></label></p>
   <p><label>Audio format <input name="audio_format" list="audio-options" value="{{ disc.audio_format or '' }}"></label></p>
   <p><label>Video format <input name="video_format" list="video-options" value="{{ disc.video_format or '' }}"></label></p>
-  <p><label>Aspect ratio <input name="aspect_ratio" type="number" step="0.01" min="0.01" value="{{ disc.aspect_ratio or '' }}"> :1</label></p>
+    <p>Aspect ratios
+    {% for r in disc.aspect_ratios or [] %}
+    <label><input type="checkbox" name="aspect_ratios" value="{{ r }}" checked> {{ r }}:1</label>
+    {% endfor %}
+    <label>Add <input name="new_aspect_ratio" placeholder="e.g. 2.39, 1.78:1"></label>
+  </p>
   <p><label><input type="checkbox" name="owned" {{ "checked" if disc.owned }}> I own this (untick for the wishlist)</label></p>
 
   <datalist id="label-options">{% for v in suggestions.label %}<option value="{{ v }}">{% endfor %}</datalist>

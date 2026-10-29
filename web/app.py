@@ -11,6 +11,7 @@ from rules import (  # NEW: two more rules
     RATING_FIELDS,
     parse_genres,
     parse_rating,
+    parse_aspect_ratios,
     score,
     score_band,
     sort_discs,
@@ -90,10 +91,10 @@ def read_form(form, known_genres):  # NEW: needs the known genres to match spell
         errors.append("Year must be a whole number.")
 
     try:
-        ratio = clean_number(form.get("aspect_ratio"), float)
+        ratios = parse_aspect_ratios(form.getlist("aspect_ratios"), form.get("new_aspect_ratio"))
     except ValueError:
-        ratio = None
-        errors.append("Aspect ratio must be a number, like 2.39.")
+        ratios = []
+        errors.append("Aspect ratios must be numbers, like 2.39 or 2.40:1.")
 
     try:
         viewings = clean_number(form.get("viewings"), int) or 0
@@ -116,7 +117,7 @@ def read_form(form, known_genres):  # NEW: needs the known genres to match spell
         "label": clean_text(form.get("label")),
         "audio_format": clean_text(form.get("audio_format")),
         "video_format": clean_text(form.get("video_format")),
-        "aspect_ratio": ratio,
+        "aspect_ratios": ratios,
         "owned": form.get("owned") == "on",
         "notes": clean_text(form.get("notes")),
         "viewings": viewings,
@@ -288,13 +289,13 @@ def add_disc():
                 INSERT INTO discs (tmdb_id, title, release_year, runtime_minutes, overview,
                                    poster_path, directors, top_cast,
                                    disc_format, label, audio_format, video_format,
-                                   aspect_ratio, owned, notes, genres,
+                                   aspect_ratios, owned, notes, genres,
                                    viewings, audio_rating, video_rating,
                                    overall_rating, rewatch_rating)
                 VALUES (%(tmdb_id)s, %(title)s, %(release_year)s, %(runtime_minutes)s, %(overview)s,
                         %(poster_path)s, %(directors)s, %(top_cast)s,
                         %(disc_format)s, %(label)s, %(audio_format)s, %(video_format)s,
-                        %(aspect_ratio)s, %(owned)s, %(notes)s, %(genres)s,
+                        %(aspect_ratios)s, %(owned)s, %(notes)s, %(genres)s,
                         %(viewings)s, %(audio_rating)s, %(video_rating)s,
                         %(overall_rating)s, %(rewatch_rating)s)
                 """,
@@ -325,7 +326,7 @@ def edit_disc(disc_id):
                     SET title = %(title)s, release_year = %(release_year)s,
                         disc_format = %(disc_format)s, label = %(label)s,
                         audio_format = %(audio_format)s, video_format = %(video_format)s,
-                        aspect_ratio = %(aspect_ratio)s, owned = %(owned)s, notes = %(notes)s,
+                        aspect_ratios = %(aspect_ratios)s, owned = %(owned)s, notes = %(notes)s,
                         genres = %(genres)s,
                         viewings = %(viewings)s, audio_rating = %(audio_rating)s,
                         video_rating = %(video_rating)s, overall_rating = %(overall_rating)s,
