@@ -40,9 +40,11 @@
   text-align: center;
   font-weight: 600;
 }
-.score-top  { background: rgba(46, 160, 67, 0.22); }
-.score-good { background: rgba(59, 130, 246, 0.18); }
-.score-low  { background: rgba(127, 127, 127, 0.15); }
+.score-green  { background: #44CE1B; color: #0B1A05; }
+.score-lime   { background: #BBDB44; color: #1A1F06; }
+.score-yellow { background: #F7E379; color: #2A2406; }
+.score-orange { background: #F2A134; color: #2A1704; }
+.score-red    { background: #E51F1F; color: #FFFFFF; }
 .score-none { color: var(--pico-muted-color); }
 
 /* Pills: format and genres as small rounded tags; 4K gets the accent colour */

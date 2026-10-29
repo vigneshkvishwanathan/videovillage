@@ -110,11 +110,17 @@ def test_sort_by_title_ignores_capitals():
 
 @pytest.mark.parametrize("disc_score, band", [
     (None, "none"),
-    (102, "top"),
-    (90, "top"),
-    (89.5, "good"),
-    (75, "good"),
-    (74.5, "low"),
+    (102, "green"),
+    (90.5, "green"),
+    (90, "lime"),      # exactly 90 is lime now: green is *above* 90
+    (89.5, "lime"),
+    (80, "lime"),
+    (79.5, "yellow"),
+    (75, "yellow"),
+    (74.5, "orange"),
+    (70, "orange"),
+    (69.5, "red"),
+    (12, "red"),
 ])
 def test_score_band(disc_score, band):
     assert score_band(disc_score) == band

@@ -65,11 +65,15 @@ def sort_discs(discs, by):
     )
     
 def score_band(disc_score):
-    """Which colour a score badge gets: "top", "good", "low", or "none" when unscored."""
+    """Which colour a score badge gets: green, lime, yellow, orange, red, or none when unscored."""
     if disc_score is None:
         return "none"
-    if disc_score >= 90:
-        return "top"
+    if disc_score > 90:
+        return "green"
+    if disc_score >= 80:
+        return "lime"
     if disc_score >= 75:
-        return "good"
-    return "low"
+        return "yellow"
+    if disc_score >= 70:
+        return "orange"
+    return "red"
