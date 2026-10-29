@@ -12,7 +12,8 @@ CREATE TABLE discs (
     label           TEXT,
     audio_format    TEXT,
     video_format    TEXT,
-    aspect_ratio    NUMERIC(4, 2) CHECK (aspect_ratio > 0),
+    aspect_ratios   NUMERIC(4, 2)[] NOT NULL DEFAULT '{}'
+                    CONSTRAINT aspect_ratios_positive CHECK (0 < ALL (aspect_ratios)),
     genres          TEXT[] NOT NULL DEFAULT '{}',
     owned           BOOLEAN NOT NULL DEFAULT false,
     notes           TEXT,
