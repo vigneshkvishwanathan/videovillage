@@ -184,19 +184,11 @@ def require_password():
         {"WWW-Authenticate": 'Basic realm="Video Village"'},
     )
 
-@app.route("/")
-def index():
-    # NEW: everything about what to show comes from the address bar, e.g.
-    # /?view=wishlist&q=nolan&format=4K+UHD&genre=Drama&sort=year
-    view = "wishlist" if request.args.get("view") == "wishlist" else "collection"
-    filters = {
-        "q": request.args.get("q", "").strip(),
-        "format": request.args.get("format", ""),
-        "genre": request.args.get("genre", ""),
-        "sort": request.args.get("sort") or ("title" if view == "wishlist" else "score"),
-    }
+def build_filter(view, filters):
+    """Turn the chosen view and filters into a WHERE clause and its values.
 
-    # NEW: build the WHERE clause from fixed pieces; the values go in as placeholders.
+    Kept separate from index() so it can be tested without a database.
+    """
     conditions = ["owned = %(owned)s"]
     params = {"owned": view == "collection"}
     if filters["q"]:
@@ -205,13 +197,29 @@ def index():
     if filters["format"] in FORMATS:
         conditions.append("disc_format = %(format)s")
         params["format"] = filters["format"]
-    if filters["genre"]:
-        conditions.append("%(genre)s = ANY(genres)")
-        params["genre"] = filters["genre"]
+    if filters["genres"]:
+        conditions.append("genres @> %(genres)s::text[]")
+        params["genres"] = filters["genres"]
+    return " AND ".join(conditions), params
+
+@app.route("/")
+def index():
+    # NEW: everything about what to show comes from the address bar, e.g.
+    # /?view=wishlist&q=nolan&format=4K+UHD&genre=Drama&sort=year
+    view = "wishlist" if request.args.get("view") == "wishlist" else "collection"
+    filters = {
+        "q": request.args.get("q", "").strip(),
+        "format": request.args.get("format", ""),
+        "genres": [g for g in request.args.getlist("genre") if g],
+        "sort": request.args.get("sort") or ("title" if view == "wishlist" else "score"),
+    }
+
+    # NEW: build the WHERE clause from fixed pieces; the values go in as placeholders.
+    where, params = build_filter(view, filters)
 
     with db() as conn:
         discs = conn.execute(
-            "SELECT * FROM discs WHERE " + " AND ".join(conditions), params
+            "SELECT * FROM discs WHERE " + where, params
         ).fetchall()
         counts = {
             row["owned"]: row["n"]

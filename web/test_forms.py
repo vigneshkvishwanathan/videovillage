@@ -5,7 +5,7 @@ from werkzeug.datastructures import MultiDict
 
 os.environ.setdefault("DATABASE_URL", "postgresql://not-used-by-these-tests")
 
-from app import clean_text, read_form, used_values  # noqa: E402
+from app import clean_text, read_form, used_values, build_filter  # noqa: E402
 
 GENRES = ["Drama", "Sci-Fi"]
 
@@ -62,3 +62,21 @@ def test_a_typed_aspect_ratio_is_added():
 def test_a_bad_aspect_ratio_is_refused():
     disc, errors = read_form(valid_form(new_aspect_ratio="abc"), GENRES)
     assert any("aspect" in e.lower() for e in errors)
+
+NO_FILTERS = {"q": "", "format": "", "genres": []}
+
+
+def test_no_genres_adds_no_genre_filter():
+    where, params = build_filter("collection", NO_FILTERS)
+    assert "genres" not in where
+
+
+def test_genres_must_all_match():
+    where, params = build_filter("collection", {**NO_FILTERS, "genres": ["War", "Drama"]})
+    assert "genres @> %(genres)s::text[]" in where
+    assert params["genres"] == ["War", "Drama"]
+
+
+def test_wishlist_view_looks_at_unowned_discs():
+    where, params = build_filter("wishlist", NO_FILTERS)
+    assert params["owned"] is False

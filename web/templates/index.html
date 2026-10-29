@@ -16,10 +16,15 @@
       <option value="">Any format</option>
       {% for f in formats %}<option {{ "selected" if filters.format == f }}>{{ f }}</option>{% endfor %}
     </select>
-    <select name="genre">
-      <option value="">Any genre</option>
-      {% for g in genres %}<option {{ "selected" if filters.genre == g }}>{{ g }}</option>{% endfor %}
-    </select>
+      </fieldset>
+  <p>
+    {% for g in genres %}
+    <label style="white-space: nowrap; margin-right: 8px">
+      <input type="checkbox" name="genre" value="{{ g }}" {{ "checked" if g in filters.genres }}> {{ g }}
+    </label>
+    {% endfor %}
+  </p>
+  <fieldset role="group">
     <select name="sort">
       {% for value, label in sorts %}<option value="{{ value }}" {{ "selected" if filters.sort == value }}>{{ label }}</option>{% endfor %}
     </select>
