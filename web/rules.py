@@ -47,22 +47,26 @@ def parse_genres(checked, typed, known):
     return result
 
 
-def sort_discs(discs, by):
-    """Sort by "title", "year" (newest first) or, by default, "score" (highest first).
+def sort_discs(discs, by, direction=None):
+    """Sort by "score", "title" or "year", in direction "asc" or "desc".
 
-    Discs missing the thing being sorted on go to the bottom, in title order.
+    No direction means the natural one: score high to low, title A to Z, year newest first.
+    Discs missing the thing being sorted on stay at the bottom either way.
     """
+    if direction is None:
+        direction = "asc" if by == "title" else "desc"
+
     if by == "title":
-        return sorted(discs, key=lambda d: d["title"].lower())
+        return sorted(discs, key=lambda d: d["title"].lower(), reverse=(direction == "desc"))
+
     if by == "year":
-        return sorted(
-            discs,
-            key=lambda d: (d["release_year"] is None, -(d["release_year"] or 0), d["title"].lower()),
-        )
-    return sorted(
-        discs,
-        key=lambda d: (d["score"] is None, -(d["score"] or 0), d["title"].lower()),
-    )
+        if direction == "asc":
+            return sorted(discs, key=lambda d: (d["release_year"] is None, d["release_year"] or 0, d["title"].lower()))
+        return sorted(discs, key=lambda d: (d["release_year"] is None, -(d["release_year"] or 0), d["title"].lower()))
+
+    if direction == "asc":
+        return sorted(discs, key=lambda d: (d["score"] is None, d["score"] or 0, d["title"].lower()))
+    return sorted(discs, key=lambda d: (d["score"] is None, -(d["score"] or 0), d["title"].lower()))
     
 def score_band(disc_score):
     """Which colour a score badge gets: green, lime, yellow, orange, red, or none when unscored."""
@@ -91,3 +95,32 @@ def rating_band(rating):
     elif rating >= 2:
         return "orange"
     return "red"
+
+def parse_aspect_ratios(checked, typed):
+    """Combine ticked ratios with typed ones ("2.40:1, 1.90") into numbers, widest first.
+
+    Raises ValueError for anything that isn't a ratio between 0 and 100.
+    """
+    result = []
+    for text in list(checked) + (typed or "").split(","):
+        # 1. Trim the spaces off text.
+        text = text.strip(" ")
+        # 2. If it's now empty, skip it (continue).
+        if text == "":
+            continue
+        # 3. If it ends with ":1", cut those 2 characters off.
+        if text.endswith(":1"):
+            text = text[:-2]
+        # 4. Turn it into a number with float(). (For "abc", float() raises ValueError by itself.)
+        
+        value = float(text)
+        
+        # 5. If the number isn't above 0 and below 100, raise ValueError.
+        if not (0 < value < 100):
+            raise ValueError(f"{text} is not an aspect ratio")
+        # 6. Round it to 2 decimal places.
+        value = round(value, 2)
+        # 7. If it's not already in result, add it.
+        if value not in result:
+            result.append(value)
+    return sorted(result, reverse=True)
