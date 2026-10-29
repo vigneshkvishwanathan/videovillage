@@ -1,6 +1,6 @@
 import pytest
 
-from rules import parse_genres, parse_rating, score, score_band, sort_discs, watched_rule_error
+from rules import parse_genres, parse_rating, rating_band, score, score_band, sort_discs, watched_rule_error
 
 
 def make_disc(audio=None, video=None, overall=None, rewatch=None, viewings=0):
@@ -124,3 +124,16 @@ def test_sort_by_title_ignores_capitals():
 ])
 def test_score_band(disc_score, band):
     assert score_band(disc_score) == band
+
+# --- Rating colours ---
+
+@pytest.mark.parametrize("rating, band", [
+    (None, "none"),
+    (0, "red"), (0.5, "red"), (1, "red"), (1.5, "red"),
+    (2, "orange"), (2.5, "orange"),
+    (3, "yellow"), (3.5, "yellow"),
+    (4, "lime"),
+    (4.5, "green"), (5, "green"),
+])
+def test_rating_band(rating, band):
+    assert rating_band(rating) == band

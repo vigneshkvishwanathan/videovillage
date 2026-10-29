@@ -77,3 +77,17 @@ def score_band(disc_score):
     if disc_score >= 70:
         return "orange"
     return "red"
+
+def rating_band(rating):
+    '''define the colors for the various ratings'''
+    if rating is None:
+        return "none"
+    elif rating >= 4.5:
+        return "green"
+    elif rating >= 4:
+        return "lime"
+    elif rating >=3:
+        return "yellow"
+    elif rating >= 2:
+        return "orange"
+    return "red"
