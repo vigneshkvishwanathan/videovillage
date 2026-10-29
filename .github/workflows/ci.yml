@@ -6,15 +6,49 @@ on:
 
 jobs:
   test:
-    name: Build the image and run the tests
+    name: Build, test, push and deploy one image
     runs-on: ubuntu-latest
+
+    permissions:
+      contents: read
+      packages: write   # lets this job push images to GitHub Container Registry
+
+    env:
+      IMAGE: ghcr.io/vigneshkvishwanathan/videovillage
+      RENDER_DEPLOY_HOOK: ${{ secrets.RENDER_DEPLOY_HOOK }}
 
     steps:
       - name: Check out the code
         uses: actions/checkout@v4
 
+      # Build the image ONCE. It is tagged with the commit ID,
+      # so every image can be traced back to the exact code inside it.
       - name: Build the web image
-        run: docker build -t videovillage-web ./web
+        run: docker build -t "$IMAGE:${{ github.sha }}" -t "$IMAGE:latest" ./web
 
       - name: Run the tests inside the image
-        run: docker run --rm videovillage-web pytest -v
+        run: docker run --rm "$IMAGE:${{ github.sha }}" pytest -v
+
+      # Everything below runs only for pushes to main, and only if the tests passed
+      # (a failing step stops the job, so a broken image is never pushed or deployed).
+
+      - name: Log in to GitHub Container Registry
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Push the tested image
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        run: |
+          docker push "$IMAGE:${{ github.sha }}"
+          docker push "$IMAGE:latest"
+
+      - name: Tell Render to deploy this exact image
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main' && env.RENDER_DEPLOY_HOOK != ''
+        run: |
+          IMG_URL="ghcr.io%2Fvigneshkvishwanathan%2Fvideovillage%3A${{ github.sha }}"
+          curl -fsS -X POST "${RENDER_DEPLOY_HOOK}&imgURL=${IMG_URL}" > /dev/null
+          echo "Asked Render to deploy $IMAGE:${{ github.sha }}"
