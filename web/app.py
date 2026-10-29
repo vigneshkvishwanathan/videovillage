@@ -184,6 +184,22 @@ def require_password():
         {"WWW-Authenticate": 'Basic realm="Video Village"'},
     )
 
+SORT_DIRECTIONS = ("asc", "desc")
+
+
+def read_filters(args):
+    """What to show, read from the address bar. Anything unexpected falls back to a default."""
+    view = "wishlist" if args.get("view") == "wishlist" else "collection"
+    direction = args.get("dir")
+    filters = {
+        "q": args.get("q", "").strip(),
+        "format": args.get("format", ""),
+        "genres": [g for g in args.getlist("genre") if g],
+        "sort": args.get("sort") or ("title" if view == "wishlist" else "score"),
+        "dir": direction if direction in SORT_DIRECTIONS else None,
+    }
+    return view, filters
+
 def build_filter(view, filters):
     """Turn the chosen view and filters into a WHERE clause and its values.
 
@@ -206,13 +222,7 @@ def build_filter(view, filters):
 def index():
     # NEW: everything about what to show comes from the address bar, e.g.
     # /?view=wishlist&q=nolan&format=4K+UHD&genre=Drama&sort=year
-    view = "wishlist" if request.args.get("view") == "wishlist" else "collection"
-    filters = {
-        "q": request.args.get("q", "").strip(),
-        "format": request.args.get("format", ""),
-        "genres": [g for g in request.args.getlist("genre") if g],
-        "sort": request.args.get("sort") or ("title" if view == "wishlist" else "score"),
-    }
+    view, filters = read_filters(request.args)
 
     # NEW: build the WHERE clause from fixed pieces; the values go in as placeholders.
     where, params = build_filter(view, filters)
@@ -235,7 +245,8 @@ def index():
     for disc in discs:
         disc["score"] = score(disc)
         disc["band"] = score_band(disc["score"])  # NEW: which colour its badge gets
-    discs = sort_discs(discs, filters["sort"])  # NEW: sorting moved into rules.py
+    
+    discs = sort_discs(discs, filters["sort"], filters["dir"])
 
     return render_template(
         "index.html",

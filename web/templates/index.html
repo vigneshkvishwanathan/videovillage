@@ -29,6 +29,11 @@
       {% for value, label in sorts %}<option value="{{ value }}" {{ "selected" if filters.sort == value }}>{{ label }}</option>{% endfor %}
     </select>
     <button>Apply</button>
+    <select name="dir">
+      <option value="">Usual order</option>
+      <option value="asc" {{ "selected" if filters.dir == "asc" }}>Low→high · A→Z · Oldest</option>
+      <option value="desc" {{ "selected" if filters.dir == "desc" }}>High→low · Z→A · Newest</option>
+    </select>
   </fieldset>
   <small><a href="{{ url_for('index', view=view) }}">Clear filters</a></small>
 </form>
