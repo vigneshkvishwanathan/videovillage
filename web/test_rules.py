@@ -1,7 +1,7 @@
 import pytest
 
 from rules import parse_genres, parse_rating, rating_band, score, score_band, sort_discs, watched_rule_error
-
+from decimal import Decimal
 
 def make_disc(audio=None, video=None, overall=None, rewatch=None, viewings=0):
     return {
@@ -134,6 +134,7 @@ def test_score_band(disc_score, band):
     (3, "yellow"), (3.5, "yellow"),
     (4, "lime"),
     (4.5, "green"), (5, "green"),
+    (Decimal("4.5"), "green"),
 ])
 def test_rating_band(rating, band):
     assert rating_band(rating) == band
