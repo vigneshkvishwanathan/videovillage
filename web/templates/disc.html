@@ -36,7 +36,11 @@
   </p>
   {% endfor %}
 {% else %}
-  <p><strong>On your wishlist.</strong></p>
+  <form method="post" action="{{ url_for('mark_owned', disc_id=disc.id) }}">
+    <p><strong>On your wishlist.</strong>
+      <button>I own it</button>
+    </p>
+  </form>
 {% endif %}
 
 {% if disc.overview %}<h3>About</h3><p>{{ disc.overview }}</p>{% endif %}

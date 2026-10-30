@@ -355,6 +355,16 @@ def add_viewing(disc_id):
         abort(404)
     return redirect(url_for("show_disc", disc_id=disc_id))
 
+@app.post("/discs/<int:disc_id>/own")
+def mark_owned(disc_id):
+    with db() as conn:
+        updated = conn.execute(
+            "UPDATE discs SET owned = true WHERE id = %s RETURNING id", (disc_id,)
+        ).fetchone()
+    if updated is None:
+        abort(404)
+    return redirect(url_for("edit_disc", disc_id=disc_id))
+
 @app.route("/discs/<int:disc_id>/edit", methods=["GET", "POST"])
 def edit_disc(disc_id):
     with db() as conn:
