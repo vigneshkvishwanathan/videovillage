@@ -100,3 +100,18 @@ def test_a_bad_sort_direction_falls_back_to_the_default(bad):
 def test_several_genres_are_read_from_the_address_bar():
     view, filters = read_filters(MultiDict([("genre", "War"), ("genre", "Drama"), ("genre", "")]))
     assert filters["genres"] == ["War", "Drama"]
+
+def test_card_layout_is_read_from_the_address_bar():
+    view, filters = read_filters(MultiDict({"layout": "cards"}))
+    assert filters["layout"] == "cards"
+
+
+def test_layout_defaults_to_list():
+    view, filters = read_filters(MultiDict({}))
+    assert filters["layout"] == "list"
+
+
+@pytest.mark.parametrize("bad", ["grid", "CARDS", ""])
+def test_an_unknown_layout_falls_back_to_list(bad):
+    view, filters = read_filters(MultiDict({"layout": bad}))
+    assert filters["layout"] == "list"

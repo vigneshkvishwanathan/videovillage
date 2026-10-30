@@ -7,9 +7,15 @@
   |
   <a href="{{ url_for('search_tmdb') }}">+ Add a disc</a>
 </p>
+<p>
+  <a href="{{ url_for('index', **dict(request.args, layout='list')) }}" style="font-weight: {{ 'bold' if filters.layout == 'list' else 'normal' }}">List</a>
+  |
+  <a href="{{ url_for('index', **dict(request.args, layout='cards')) }}" style="font-weight: {{ 'bold' if filters.layout == 'cards' else 'normal' }}">Cards</a>
+</p>
 
 <form method="get">
   <input type="hidden" name="view" value="{{ view }}">
+  <input type="hidden" name="layout" value="{{ filters.layout }}">
   <fieldset role="group">
     <input name="q" value="{{ filters.q }}" placeholder="Title, director or actor">
     <select name="format">
@@ -38,6 +44,7 @@
   <small><a href="{{ url_for('index', view=view) }}">Clear filters</a></small>
 </form>
 
+{% if filters.layout == "cards" %}<p><em>Card view coming in step 4.4. Showing the list for now.</em></p>{% endif %}
 <div class="overflow-auto">
 <table class="discs">
   <thead>

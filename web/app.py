@@ -197,6 +197,7 @@ def read_filters(args):
         "genres": [g for g in args.getlist("genre") if g],
         "sort": args.get("sort") or ("title" if view == "wishlist" else "score"),
         "dir": direction if direction in SORT_DIRECTIONS else None,
+        "layout": "cards" if args.get("layout") == "cards" else "list",
     }
     return view, filters
 
