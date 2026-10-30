@@ -5,7 +5,7 @@ from werkzeug.datastructures import MultiDict
 
 os.environ.setdefault("DATABASE_URL", "postgresql://not-used-by-these-tests")
 
-from app import clean_text, read_form, used_values, build_filter, read_filters  # noqa: E402
+from app import clean_text, read_form, used_values, build_filter, read_filters, prepare_disc  # noqa: E402
 
 GENRES = ["Drama", "Sci-Fi"]
 
@@ -115,3 +115,29 @@ def test_layout_defaults_to_list():
 def test_an_unknown_layout_falls_back_to_list(bad):
     view, filters = read_filters(MultiDict({"layout": bad}))
     assert filters["layout"] == "list"
+
+def rated_disc(**changes):
+    disc = {"viewings": 2, "audio_rating": 5, "video_rating": 4,
+            "overall_rating": 3, "rewatch_rating": 1.5}
+    disc.update(changes)
+    return disc
+
+
+def test_prepare_disc_adds_the_score_and_its_colour():
+    disc = prepare_disc(rated_disc())
+    assert disc["score"] == 68.5
+    assert disc["band"] == "red"
+
+
+def test_prepare_disc_colours_each_rating():
+    rows = prepare_disc(rated_disc())["rating_rows"]
+    assert [r["label"] for r in rows] == ["Audio", "Video", "Overall", "Rewatchability"]
+    assert [r["band"] for r in rows] == ["green", "lime", "yellow", "red"]
+
+
+def test_an_unrated_disc_has_no_score():
+    disc = prepare_disc(rated_disc(viewings=0, audio_rating=None, video_rating=None,
+                                   overall_rating=None, rewatch_rating=None))
+    assert disc["score"] is None
+    assert disc["band"] == "none"
+    assert all(r["band"] == "none" for r in disc["rating_rows"])

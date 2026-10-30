@@ -12,6 +12,7 @@ from rules import (  # NEW: two more rules
     parse_genres,
     parse_rating,
     parse_aspect_ratios,
+    rating_band,
     score,
     score_band,
     sort_discs,
@@ -219,6 +220,16 @@ def build_filter(view, filters):
         params["genres"] = filters["genres"]
     return " AND ".join(conditions), params
 
+def prepare_disc(disc):
+    """Add what's calculated, never stored: the score, its colour, and each rating's colour."""
+    disc["score"] = score(disc)
+    disc["band"] = score_band(disc["score"])
+    disc["rating_rows"] = [
+        {"label": label, "value": disc[field], "band": rating_band(disc[field])}
+        for field, label in RATING_LABELS.items()
+    ]
+    return disc
+
 @app.route("/")
 def index():
     # NEW: everything about what to show comes from the address bar, e.g.
@@ -244,8 +255,7 @@ def index():
         ]
 
     for disc in discs:
-        disc["score"] = score(disc)
-        disc["band"] = score_band(disc["score"])  # NEW: which colour its badge gets
+        prepare_disc(disc)
     
     discs = sort_discs(discs, filters["sort"], filters["dir"])
 
@@ -326,6 +336,14 @@ def add_disc():
 
     return redirect(url_for("index", view="collection" if disc["owned"] else "wishlist"))
 
+
+@app.route("/discs/<int:disc_id>")
+def show_disc(disc_id):
+    with db() as conn:
+        disc = conn.execute("SELECT * FROM discs WHERE id = %s", (disc_id,)).fetchone()
+    if disc is None:
+        abort(404)
+    return render_template("disc.html", disc=prepare_disc(disc))
 
 @app.route("/discs/<int:disc_id>/edit", methods=["GET", "POST"])
 def edit_disc(disc_id):

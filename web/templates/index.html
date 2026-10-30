@@ -60,7 +60,7 @@
       <td>{% if disc.poster_path %}<img src="{{ poster_base }}{{ disc.poster_path }}" class="poster" alt="">{% endif %}</td>
       <td><span class="score score-{{ disc.band }}">{{ "%g" | format(disc.score) if disc.score is not none else "–" }}</span></td>
       <td>
-        <a class="title-link" href="{{ url_for('edit_disc', disc_id=disc.id) }}">{{ disc.title }}</a>
+        <a class="title-link" href="{{ url_for('show_disc', disc_id=disc.id) }}">{{ disc.title }}</a>
         {% if made %}<div class="sub">{{ made }}</div>{% endif %}
       </td>
       <td><span class="pill{{ ' pill-4k' if disc.disc_format == '4K UHD' }}">{{ disc.disc_format }}</span></td>
