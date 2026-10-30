@@ -23,7 +23,11 @@
   {% else %}
     <p>Not watched yet. Ratings unlock after your first viewing.</p>
   {% endif %}
-  <p>Watched {{ disc.viewings }}×</p>
+    <form method="post" action="{{ url_for('add_viewing', disc_id=disc.id) }}">
+    <p>Watched {{ disc.viewings }}×
+      <button>+1 viewing</button>
+    </p>
+  </form>
 
   <h3>Ratings</h3>
   {% for r in disc.rating_rows %}

@@ -345,6 +345,16 @@ def show_disc(disc_id):
         abort(404)
     return render_template("disc.html", disc=prepare_disc(disc))
 
+@app.post("/discs/<int:disc_id>/view")
+def add_viewing(disc_id):
+    with db() as conn:
+        updated = conn.execute(
+            "UPDATE discs SET viewings = viewings + 1 WHERE id = %s RETURNING id", (disc_id,)
+        ).fetchone()
+    if updated is None:
+        abort(404)
+    return redirect(url_for("show_disc", disc_id=disc_id))
+
 @app.route("/discs/<int:disc_id>/edit", methods=["GET", "POST"])
 def edit_disc(disc_id):
     with db() as conn:
