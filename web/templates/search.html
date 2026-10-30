@@ -13,7 +13,11 @@
 <p>
   {% if movie.poster_path %}<img src="{{ poster_base }}{{ movie.poster_path }}" width="46" alt="">{% endif %}
   {{ movie.title }}{% if movie.year %} ({{ movie.year }}){% endif %}
+  {% if movie.badge %}
+  — <span class="pill">{{ movie.badge }}</span> <a href="{{ url_for('show_disc', disc_id=movie.disc_id) }}">Open it</a>
+  {% else %}
   — <a href="{{ url_for('add_disc', tmdb_id=movie.tmdb_id) }}">Add this one</a>
+  {% endif %}
 </p>
 {% else %}
   {% if query and not error %}<p>No films found for "{{ query }}".</p>{% endif %}

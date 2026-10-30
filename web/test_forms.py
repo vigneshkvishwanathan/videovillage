@@ -5,7 +5,7 @@ from werkzeug.datastructures import MultiDict
 
 os.environ.setdefault("DATABASE_URL", "postgresql://not-used-by-these-tests")
 
-from app import clean_text, read_form, used_values, build_filter, read_filters, prepare_disc  # noqa: E402
+from app import clean_text, read_form, used_values, build_filter, read_filters, prepare_disc, mark_already_have  # noqa: E402
 
 GENRES = ["Drama", "Sci-Fi"]
 
@@ -141,3 +141,30 @@ def test_an_unrated_disc_has_no_score():
     assert disc["score"] is None
     assert disc["band"] == "none"
     assert all(r["band"] == "none" for r in disc["rating_rows"])
+
+SEARCH_RESULTS = [
+    {"tmdb_id": 1, "title": "Arrival"},
+    {"tmdb_id": 2, "title": "The Thing"},
+    {"tmdb_id": 3, "title": "The Godfather"},
+]
+HAVE = {
+    2: {"id": 40, "tmdb_id": 2, "owned": True},
+    3: {"id": 41, "tmdb_id": 3, "owned": False},
+}
+
+
+def test_films_you_own_say_in_collection():
+    results = mark_already_have([dict(m) for m in SEARCH_RESULTS], HAVE)
+    assert results[1]["badge"] == "In collection"
+    assert results[1]["disc_id"] == 40
+
+
+def test_films_on_the_wishlist_say_so():
+    results = mark_already_have([dict(m) for m in SEARCH_RESULTS], HAVE)
+    assert results[2]["badge"] == "On wishlist"
+
+
+def test_new_films_have_no_badge():
+    results = mark_already_have([dict(m) for m in SEARCH_RESULTS], HAVE)
+    assert results[0]["badge"] is None
+    assert results[0]["disc_id"] is None

@@ -230,6 +230,18 @@ def prepare_disc(disc):
     ]
     return disc
 
+def mark_already_have(results, have):
+    """Label each TMDb result you already have. `have` maps tmdb_id -> your disc row."""
+    for movie in results:
+        mine = have.get(movie["tmdb_id"])
+        if mine is None:
+            movie["badge"] = None
+            movie["disc_id"] = None
+        else:
+            movie["badge"] = "In collection" if mine["owned"] else "On wishlist"
+            movie["disc_id"] = mine["id"]
+    return results
+
 @app.route("/")
 def index():
     # NEW: everything about what to show comes from the address bar, e.g.
@@ -280,6 +292,13 @@ def search_tmdb():
             results = tmdb.search(query)
         except requests.RequestException:
             error = TMDB_DOWN
+    if results:
+        with db() as conn:
+            rows = conn.execute(
+                "SELECT id, tmdb_id, owned FROM discs WHERE tmdb_id = ANY(%s)",
+                ([m["tmdb_id"] for m in results],),
+            ).fetchall()
+        mark_already_have(results, {row["tmdb_id"]: row for row in rows})
     return render_template("search.html", query=query, results=results, error=error)
 
 
