@@ -7,7 +7,10 @@ os.environ.setdefault("DATABASE_URL", "postgresql://not-used-by-these-tests")
 
 from decimal import Decimal
 
-from app import clean_text, read_form, used_values, build_filter, read_filters, prepare_disc, mark_already_have, ratio_choices, text_choices  # noqa: E402
+from app import (
+    clean_text, read_form, used_values, build_filter, read_filters, prepare_disc, 
+    mark_already_have, ratio_choices, text_choices, filter_summary, filters_active
+    )  # noqa: E402
 
 GENRES = ["Drama", "Sci-Fi"]
 
@@ -193,3 +196,27 @@ def test_ratio_choices_do_not_repeat_a_starter_that_came_from_the_database():
 def test_ratio_choices_are_widest_first():
     choices = ratio_choices([])
     assert choices == sorted(choices, reverse=True)
+
+def filters_with(**changes):
+    filters = {"q": "", "format": "", "genres": [], "sort": "score", "dir": None, "layout": "list"}
+    filters.update(changes)
+    return filters
+
+
+def test_summary_with_no_filters():
+    assert filter_summary(filters_with()) == "Highest score · All discs"
+
+
+def test_summary_lists_every_filter_in_order():
+    filters = filters_with(dir="asc", q="nolan", format="4K UHD", genres=["War", "Drama"])
+    assert filter_summary(filters) == "Lowest score · “nolan” · 4K UHD · War + Drama"
+
+
+def test_summary_uses_each_sort_s_natural_direction():
+    assert filter_summary(filters_with(sort="title")) == "A–Z · All discs"
+    assert filter_summary(filters_with(sort="year")) == "Newest · All discs"
+
+
+def test_sorting_alone_does_not_count_as_filtering():
+    assert filters_active(filters_with(sort="year", dir="asc")) is False
+    assert filters_active(filters_with(genres=["War"])) is True

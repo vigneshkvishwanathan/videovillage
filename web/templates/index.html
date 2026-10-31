@@ -1,80 +1,93 @@
 {% extends "base.html" %}
 {% block content %}
-<p>
-  <a href="{{ url_for('index') }}" style="font-weight: {{ 'bold' if view == 'collection' else 'normal' }}">Collection ({{ counts.collection }})</a>
-  |
-  <a href="{{ url_for('index', view='wishlist') }}" style="font-weight: {{ 'bold' if view == 'wishlist' else 'normal' }}">Wishlist ({{ counts.wishlist }})</a>
-  |
-  <a href="{{ url_for('search_tmdb') }}">+ Add a disc</a>
-</p>
-<p>
-  <a href="{{ url_for('index', **dict(request.args, layout='list')) }}" style="font-weight: {{ 'bold' if filters.layout == 'list' else 'normal' }}">List</a>
-  |
-  <a href="{{ url_for('index', **dict(request.args, layout='cards')) }}" style="font-weight: {{ 'bold' if filters.layout == 'cards' else 'normal' }}">Cards</a>
-</p>
+<header class="list-head">
+  <div>
+    <h1>{{ "Wishlist" if view == "wishlist" else "Collection" }}</h1>
+    <p class="sub">{{ discs | length }} {{ "matching" if active else ("disc" if discs | length == 1 else "discs") }}</p>
+  </div>
+  <a class="add-button" href="{{ url_for('search_tmdb') }}">
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" aria-hidden="true"><path d="M12 5v14M5 12h14"></path></svg>
+    Add disc
+  </a>
+</header>
 
-<form method="get" id="filters>
-  <input type="hidden" name="view" value="{{ view }}">
-  <input type="hidden" name="layout" value="{{ filters.layout }}">
-  <fieldset role="group">
-    <input name="q" value="{{ filters.q }}" placeholder="Title, director or actor">
-    <select name="format">
-      <option value="">Any format</option>
-      {% for f in formats %}<option {{ "selected" if filters.format == f }}>{{ f }}</option>{% endfor %}
-    </select>
-      </fieldset>
-  <p>
-    {% for g in genres %}
-    <label style="white-space: nowrap; margin-right: 8px">
-      <input type="checkbox" name="genre" value="{{ g }}" {{ "checked" if g in filters.genres }}> {{ g }}
-    </label>
-    {% endfor %}
-  </p>
-  <fieldset role="group">
-    <select name="sort">
-      {% for value, label in sorts %}<option value="{{ value }}" {{ "selected" if filters.sort == value }}>{{ label }}</option>{% endfor %}
-    </select>
-    <button>Apply</button>
-    <select name="dir">
-      <option value="">Usual order</option>
-      <option value="asc" {{ "selected" if filters.dir == "asc" }}>Low→high · A→Z · Oldest</option>
-      <option value="desc" {{ "selected" if filters.dir == "desc" }}>High→low · Z→A · Newest</option>
-    </select>
-  </fieldset>
-  <small><a href="{{ url_for('index', view=view) }}">Clear filters</a></small>
-</form>
+<div class="list-tools">
+  <details id="filters" class="filters">
+    <summary class="{{ 'is-active' if active }}">{{ summary }}</summary>
+    <form method="get">
+      <input type="hidden" name="view" value="{{ view }}">
+      <input type="hidden" name="layout" value="{{ filters.layout }}">
+      <input name="q" value="{{ filters.q }}" placeholder="Title, director or actor" aria-label="Search">
+      <select name="format" aria-label="Format">
+        <option value="">Any format</option>
+        {% for f in formats %}<option {{ "selected" if filters.format == f }}>{{ f }}</option>{% endfor %}
+      </select>
+      <p>
+        {% for g in genres %}
+        <label style="white-space: nowrap; margin-right: 8px">
+          <input type="checkbox" name="genre" value="{{ g }}" {{ "checked" if g in filters.genres }}> {{ g }}
+        </label>
+        {% endfor %}
+      </p>
+      <select name="sort" aria-label="Sort by">
+        {% for value, label in sorts %}<option value="{{ value }}" {{ "selected" if filters.sort == value }}>{{ label }}</option>{% endfor %}
+      </select>
+      <select name="dir" aria-label="Direction">
+        <option value="">Usual order</option>
+        <option value="asc" {{ "selected" if filters.dir == "asc" }}>Low→high · A→Z · Oldest</option>
+        <option value="desc" {{ "selected" if filters.dir == "desc" }}>High→low · Z→A · Newest</option>
+      </select>
+      <button>Show results</button>
+    </form>
+  </details>
 
-{% if filters.layout == "cards" %}<p><em>Card view coming in step 4.4. Showing the list for now.</em></p>{% endif %}
-<div class="overflow-auto">
-<table class="discs">
-  <thead>
-    <tr><th></th><th>Score</th><th>Title</th><th>Format</th><th>Genres</th><th>Specs</th></tr>
-  </thead>
-  <tbody>
-  {% for disc in discs %}
-    {% set made = [disc.release_year, disc.directors] | select | join(" · ") %}
-    {% set ratio = (disc.aspect_ratios | join(":1, ")) ~ ":1" if disc.aspect_ratios else none %}
-    {% set spec_1 = [disc.label, ratio] | select | join(" · ") %}
-    {% set spec_2 = [disc.video_format, disc.audio_format] | select | join(" · ") %}
-    <tr>
-      <td>{% if disc.poster_path %}<img src="{{ poster_base }}{{ disc.poster_path }}" class="poster" alt="">{% endif %}</td>
-      <td><span class="score-num band-{{ disc.band }}">{{ "%g" | format(disc.score) if disc.score is not none else "–" }}</span></td>
-      <td>
-        <a class="title-link" href="{{ url_for('show_disc', disc_id=disc.id) }}">{{ disc.title }}</a>
-        {% if made %}<div class="sub">{{ made }}</div>{% endif %}
-      </td>
-      <td><span class="pill{{ ' pill-4k' if disc.disc_format == '4K UHD' }}">{{ disc.disc_format }}</span></td>
-      <td>{% for g in disc.genres %}<span class="pill">{{ g }}</span>{% endfor %}</td>
-      <td class="spec">
-        {% if spec_1 %}<div>{{ spec_1 }}</div>{% endif %}
-        {% if spec_2 %}<div>{{ spec_2 }}</div>{% endif %}
-        <div>{{ "Watched %d×" | format(disc.viewings) if disc.viewings else "Not watched yet" }}</div>
-      </td>
-    </tr>
-  {% else %}
-    <tr><td colspan="6">Nothing here{{ " matches those filters" if filters.q or filters.format or filters.genre }}.</td></tr>
-  {% endfor %}
-  </tbody>
-</table>
+  {% if active %}
+  <a class="clear" href="{{ url_for('index', view=view, layout=filters.layout) }}">Clear</a>
+  {% endif %}
+
+  <div class="toggle" role="group" aria-label="Layout">
+    <a href="{{ url_for('index', **dict(request.args, layout='list')) }}" aria-label="List view" {% if filters.layout == "list" %}aria-current="page"{% endif %}>
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M8 6h13M8 12h13M8 18h13"></path><path d="M3 6h.01M3 12h.01M3 18h.01"></path></svg>
+    </a>
+    <a href="{{ url_for('index', **dict(request.args, layout='cards')) }}" aria-label="Card view" {% if filters.layout == "cards" %}aria-current="page"{% endif %}>
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><rect x="6" y="3" width="12" height="18" rx="2"></rect><path d="M2 6v12M22 6v12"></path></svg>
+    </a>
+  </div>
 </div>
+
+{% if filters.layout == "cards" %}<p class="sub">Card view comes in step 4.4. Showing the list for now.</p>{% endif %}
+
+<ol class="disc-list">
+  {% for disc in discs %}
+  <li>
+    <a class="disc-row" href="{{ url_for('show_disc', disc_id=disc.id) }}">
+      {% if disc.poster_path %}
+      <img class="thumb" src="{{ poster_base }}{{ disc.poster_path }}" alt="" loading="lazy">
+      {% else %}
+      <span class="thumb"></span>
+      {% endif %}
+      <span class="row-text">
+        <span class="row-title">{{ disc.title }}</span>
+        <span class="sub">{{ [disc.release_year, disc.disc_format] | select | join(" · ") }}</span>
+      </span>
+      {% if view == "collection" %}
+        {% if disc.score is not none %}
+        <span class="score-num band-{{ disc.band }}">{{ "%g" | format(disc.score) }}</span>
+        {% else %}
+        <span class="row-state">{{ "Unrated" if disc.viewings else "Unwatched" }}</span>
+        {% endif %}
+      {% endif %}
+    </a>
+  </li>
+  {% else %}
+  <li class="empty">
+    {% if active %}
+      <p>No discs match these filters.</p>
+      <a role="button" class="outline" href="{{ url_for('index', view=view, layout=filters.layout) }}">Clear filters</a>
+    {% else %}
+      <p>Nothing here yet. Tap <strong>Add disc</strong> to add your first one.</p>
+    {% endif %}
+  </li>
+  {% endfor %}
+</ol>
 {% endblock %}

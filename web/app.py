@@ -226,6 +226,31 @@ def read_filters(args):
     }
     return view, filters
 
+SORT_WORDS = {
+    ("score", "desc"): "Highest score", ("score", "asc"): "Lowest score",
+    ("title", "asc"): "A–Z",            ("title", "desc"): "Z–A",
+    ("year", "desc"): "Newest",         ("year", "asc"): "Oldest",
+}
+
+def filter_summary(filters):
+    """One line saying what the list shows, e.g. "Highest score · 4K UHD · War + Drama"."""
+    direction = filters["dir"] or ("asc" if filters["sort"] == "title" else "desc")
+    parts = [SORT_WORDS.get((filters["sort"], direction), "Highest score")]
+    if filters["q"]:
+        parts.append(f"“{filters['q']}”")
+    if filters["format"]:
+        parts.append(filters["format"])
+    if filters["genres"]:
+        parts.append(" + ".join(filters["genres"]))
+    if len(parts) == 1:
+        parts.append("All discs")
+    return " · ".join(parts)
+
+
+def filters_active(filters):
+    """True when something is hidden from the list. Sorting alone doesn't count."""
+    return bool(filters["q"] or filters["format"] or filters["genres"])
+
 def build_filter(view, filters):
     """Turn the chosen view and filters into a WHERE clause and its values.
 
@@ -304,6 +329,8 @@ def index():
         genres=used_genres,
         formats=FORMATS,
         sorts=SORTS,
+        summary=filter_summary(filters),
+        active=filters_active(filters)
     )
 
 

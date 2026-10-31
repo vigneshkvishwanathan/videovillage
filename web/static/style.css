@@ -73,38 +73,112 @@ body {
 }
 
 
-/* Video Village: a few additions on top of Pico.css */
 
-/* Posters: a fixed size, so a busy table can't squeeze them */
-.poster {
-  width: 40px;
-  min-width: 40px;
-  height: auto;
-  border-radius: 4px;
-  display: block;
-}
 
-/* Rows: centred vertically, gently highlighted under the mouse */
-.discs td {
-  vertical-align: middle;
-}
-.discs tbody tr:hover td {
-  background: rgba(127, 127, 127, 0.08);
-}
-
-/* Title in bold, with the year and director in small grey text underneath */
-.title-link {
-  font-weight: 600;
-  text-decoration: none;
-}
-.sub,
-.spec {
+.sub {
   font-size: 0.8rem;
   color: var(--pico-muted-color);
 }
-.spec {
-  line-height: 1.4;
+
+/* ---- List page ---- */
+.list-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 1rem;
 }
+.list-head h1 { margin: 0; font-size: 1.75rem; }
+.list-head .sub { margin: 0; }
+
+.add-button {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 46px;
+  padding: 0 18px;
+  border-radius: 999px;
+  background: var(--vv-green);
+  color: #03200D;
+  font-weight: 700;
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+.list-tools {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 0.75rem;
+}
+.filters { flex: 1 1 0; min-width: 0; margin: 0; }
+.filters[open] { flex-basis: 100%; }
+.filters > summary {
+  display: flex;
+  align-items: center;
+  min-height: 40px;
+  padding: 0 12px;
+  border: 1px solid #444444;
+  border-radius: 10px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  cursor: pointer;
+}
+.filters > summary.is-active {
+  border-color: var(--vv-amber);
+  background: #2A2312;
+  color: var(--vv-amber);
+}
+.filters form { margin-top: 0.75rem; }
+.clear { font-size: 0.85rem; font-weight: 700; text-decoration: none; }
+
+.toggle {
+  display: flex;
+  padding: 3px;
+  border-radius: 10px;
+  background: var(--vv-panel);
+}
+.toggle a {
+  display: grid;
+  place-items: center;
+  width: 40px;
+  height: 34px;
+  border-radius: 8px;
+  color: var(--vv-muted);
+}
+.toggle a[aria-current="page"] { background: #383838; color: var(--vv-text); }
+
+/* ---- Disc rows ---- */
+.disc-list { margin: 0; padding: 0; }
+.disc-list li { list-style: none; margin: 0; }
+.disc-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 8px 4px;
+  border-radius: 10px;
+  color: var(--vv-text);
+  text-decoration: none;
+}
+.disc-row:hover,
+.disc-row:focus-visible { background: var(--vv-panel); }
+.thumb {
+  width: 44px;
+  height: 66px;
+  flex-shrink: 0;
+  border-radius: 6px;
+  object-fit: cover;
+  background: var(--vv-panel);
+}
+.row-text { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px; }
+.row-title { font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.row-state { font-size: 0.8rem; color: var(--vv-muted); }
+.empty { padding: 3rem 1rem; text-align: center; color: var(--vv-muted); }
+
 
 /* ---- Band colours: each class only sets --band; components decide how to use it ---- */
 .band-green  { --band: #44CE1B; }
