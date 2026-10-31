@@ -5,6 +5,7 @@ import requests
 
 API = "https://api.themoviedb.org/3"
 POSTER_BASE = "https://image.tmdb.org/t/p/w185"
+POSTER_BIG = "https://image.tmdb.org/t/p/w500"
 TOP_CAST = 5
 
 

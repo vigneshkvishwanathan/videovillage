@@ -55,39 +55,65 @@
   </div>
 </div>
 
-{% if filters.layout == "cards" %}<p class="sub">Card view comes in step 4.4. Showing the list for now.</p>{% endif %}
-
-<ol class="disc-list">
-  {% for disc in discs %}
-  <li>
-    <a class="disc-row" href="{{ url_for('show_disc', disc_id=disc.id) }}">
-      {% if disc.poster_path %}
-      <img class="thumb" src="{{ poster_base }}{{ disc.poster_path }}" alt="" loading="lazy">
-      {% else %}
-      <span class="thumb"></span>
-      {% endif %}
-      <span class="row-text">
-        <span class="row-title">{{ disc.title }}</span>
-        <span class="sub">{{ [disc.release_year, disc.disc_format] | select | join(" · ") }}</span>
-      </span>
-      {% if view == "collection" %}
-        {% if disc.score is not none %}
-        <span class="score-num band-{{ disc.band }}">{{ "%g" | format(disc.score) }}</span>
-        {% else %}
-        <span class="row-state">{{ "Unrated" if disc.viewings else "Unwatched" }}</span>
-        {% endif %}
-      {% endif %}
-    </a>
-  </li>
-  {% else %}
-  <li class="empty">
+{% if not discs %}
+  <div class="empty">
     {% if active %}
       <p>No discs match these filters.</p>
       <a role="button" class="outline" href="{{ url_for('index', view=view, layout=filters.layout) }}">Clear filters</a>
     {% else %}
       <p>Nothing here yet. Tap <strong>Add disc</strong> to add your first one.</p>
     {% endif %}
-  </li>
-  {% endfor %}
-</ol>
+  </div>
+
+{% elif filters.layout == "cards" %}
+  <ol class="card-strip" aria-label="Discs, swipe sideways for more">
+    {% for disc in discs %}
+    <li class="card">
+      <a class="card-link" href="{{ url_for('show_disc', disc_id=disc.id) }}">
+        {% if disc.poster_path %}
+        <img src="{{ poster_big }}{{ disc.poster_path }}" alt="{{ disc.title }}" loading="lazy">
+        {% else %}
+        <span class="card-fallback">{{ disc.title }}</span>
+        {% endif %}
+        {% if view == "wishlist" %}
+        <span class="card-badge band-none">Wishlist</span>
+        {% elif disc.score is not none %}
+        <span class="card-badge score-num band-{{ disc.band }}">{{ "%g" | format(disc.score) }}</span>
+        {% else %}
+        <span class="card-badge band-none">{{ "Unrated" if disc.viewings else "Unwatched" }}</span>
+        {% endif %}
+      </a>
+      <p class="card-title">{{ disc.title }}</p>
+      <p class="sub">{{ [disc.release_year, disc.disc_format, ("%d min" | format(disc.runtime_minutes)) if disc.runtime_minutes else none] | select | join(" · ") }}</p>
+    </li>
+    {% endfor %}
+  </ol>
+  <p class="sub card-hint">Swipe for more · {{ discs | length }} {{ "disc" if discs | length == 1 else "discs" }}</p>
+
+{% else %}
+  <ol class="disc-list">
+    {% for disc in discs %}
+    <li>
+      <a class="disc-row" href="{{ url_for('show_disc', disc_id=disc.id) }}">
+        {% if disc.poster_path %}
+        <img class="thumb" src="{{ poster_base }}{{ disc.poster_path }}" alt="" loading="lazy">
+        {% else %}
+        <span class="thumb"></span>
+        {% endif %}
+        <span class="row-text">
+          <span class="row-title">{{ disc.title }}</span>
+          <span class="sub">{{ [disc.release_year, disc.disc_format] | select | join(" · ") }}</span>
+        </span>
+        {% if view == "collection" %}
+          {% if disc.score is not none %}
+          <span class="score-num band-{{ disc.band }}">{{ "%g" | format(disc.score) }}</span>
+          {% else %}
+          <span class="row-state">{{ "Unrated" if disc.viewings else "Unwatched" }}</span>
+          {% endif %}
+        {% endif %}
+      </a>
+    </li>
+    {% endfor %}
+  </ol>
+{% endif %}
 {% endblock %}

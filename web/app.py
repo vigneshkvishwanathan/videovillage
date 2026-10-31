@@ -22,6 +22,7 @@ from rules import (  # NEW: two more rules
 app = Flask(__name__)
 app.secret_key = os.environ.get("SECRET_KEY")
 app.jinja_env.globals["poster_base"] = tmdb.POSTER_BASE
+app.jinja_env.globals["poster_big"] = tmdb.POSTER_BIG
 DATABASE_URL = os.environ["DATABASE_URL"]
 
 
