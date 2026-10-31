@@ -1,3 +1,78 @@
+/* ---- Video Village theme: re-colour Pico through its own settings ---- */
+:root[data-theme="dark"] {
+  --vv-bg: #121212;
+  --vv-panel: #1E1E1E;
+  --vv-bar: #181818;
+  --vv-line: #2A2A2A;
+  --vv-text: #F2F2F2;
+  --vv-muted: #A8A8A8;
+  --vv-amber: #F2B544;
+  --vv-green: #0BDA51;
+
+  --pico-background-color: var(--vv-bg);
+  --pico-color: var(--vv-text);
+  --pico-muted-color: var(--vv-muted);
+  --pico-muted-border-color: var(--vv-line);
+  --pico-card-background-color: var(--vv-panel);
+  --pico-form-element-background-color: var(--vv-panel);
+  --pico-form-element-border-color: #333333;
+  --pico-primary: var(--vv-amber);
+  --pico-primary-hover: #FFD27A;
+  --pico-primary-background: var(--vv-amber);
+  --pico-primary-hover-background: #FFD27A;
+  --pico-primary-border: var(--vv-amber);
+  --pico-primary-inverse: #1A1300;
+  --pico-font-family: "Inter", system-ui, -apple-system, sans-serif;
+}
+
+/* Room at the bottom so the tab bar never covers the last row */
+body {
+  padding-bottom: calc(76px + env(safe-area-inset-bottom, 0px));
+}
+
+/* The app name, poster-style */
+.brand {
+  display: inline-block;
+  margin-bottom: 1rem;
+  font-family: "Oswald", "Arial Narrow", sans-serif;
+  font-size: 1.5rem;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  text-decoration: none;
+  color: var(--vv-text);
+}
+
+/* ---- Bottom tab bar ---- */
+.tabbar {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 10;
+  display: flex;
+  justify-content: space-around;
+  padding: 8px 0 calc(8px + env(safe-area-inset-bottom, 0px));
+  background: var(--vv-bar);
+  border-top: 1px solid var(--vv-line);
+}
+.tabbar a {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  min-width: 88px;
+  min-height: 48px;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--vv-muted);
+  text-decoration: none;
+}
+.tabbar a[aria-current="page"] {
+  color: var(--vv-amber);
+}
+
+
 /* Video Village: a few additions on top of Pico.css */
 
 /* Posters: a fixed size, so a busy table can't squeeze them */
@@ -61,4 +136,11 @@
 .pill-4k {
   border-color: var(--pico-primary);
   color: var(--pico-primary);
+}
+
+/* Until 4.5: show where the Search tab landed */
+#filters:target {
+  outline: 2px solid var(--vv-amber);
+  outline-offset: 6px;
+  border-radius: 8px;
 }

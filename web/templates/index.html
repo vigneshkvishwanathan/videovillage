@@ -13,7 +13,7 @@
   <a href="{{ url_for('index', **dict(request.args, layout='cards')) }}" style="font-weight: {{ 'bold' if filters.layout == 'cards' else 'normal' }}">Cards</a>
 </p>
 
-<form method="get">
+<form method="get" id="filters>
   <input type="hidden" name="view" value="{{ view }}">
   <input type="hidden" name="layout" value="{{ filters.layout }}">
   <fieldset role="group">
