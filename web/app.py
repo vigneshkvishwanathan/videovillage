@@ -4,7 +4,7 @@ import os
 import psycopg
 import requests
 from psycopg.rows import dict_row
-from flask import Flask, Response, abort, redirect, render_template, request, url_for
+from flask import Flask, Response, abort, redirect, render_template, request, url_for, flash
 
 import tmdb
 from rules import (  # NEW: two more rules
@@ -20,8 +20,10 @@ from rules import (  # NEW: two more rules
 )
 
 app = Flask(__name__)
+app.secret_key = os.environ.get("SECRET_KEY")
 app.jinja_env.globals["poster_base"] = tmdb.POSTER_BASE
 DATABASE_URL = os.environ["DATABASE_URL"]
+
 
 FORMATS = ["4K UHD", "Blu-ray"]
 RATING_LABELS = {
@@ -374,7 +376,8 @@ def add_disc():
             )
     except psycopg.errors.UniqueViolation:
         return show_form(disc, ["That film is already in your collection."])
-
+    
+    flash(f"Added {disc['title']} to your {'collection' if disc['owned'] else 'wishlist'}.")
     return redirect(url_for("index", view="collection" if disc["owned"] else "wishlist"))
 
 
@@ -434,8 +437,9 @@ def edit_disc(disc_id):
                     """,
                     {**disc, "id": disc_id},
                 )
+                flash(f"Saved {disc['title']}.")
                 return redirect(url_for("index", view="collection" if disc["owned"] else "wishlist"))
-
+    
     return show_form(disc, errors, disc_id)
 
 

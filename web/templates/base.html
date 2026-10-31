@@ -10,6 +10,9 @@
 <body>
   <main class="container">
     <h1><a href="{{ url_for('index') }}">Video Village</a></h1>
+    {% with messages = get_flashed_messages() %}
+      {% for message in messages %}<article role="status">{{ message }}</article>{% endfor %}
+    {% endwith %}
     {% block content %}{% endblock %}
   </main>
 </body>
