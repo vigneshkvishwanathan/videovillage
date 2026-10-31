@@ -112,28 +112,80 @@ body {
   gap: 8px;
   margin-bottom: 0.75rem;
 }
-.filters { flex: 1 1 0; min-width: 0; margin: 0; }
-.filters[open] { flex-basis: 100%; }
-.filters > summary {
+
+
+/* ---- Filter summary on the list: a button-looking link to the Search page ---- */
+.filter-summary {
+  flex: 1 1 0;
+  min-width: 0;
   display: flex;
   align-items: center;
   min-height: 40px;
   padding: 0 12px;
   border: 1px solid #444444;
   border-radius: 10px;
+  color: var(--vv-text);
   font-size: 0.85rem;
   font-weight: 600;
+  text-decoration: none;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-  cursor: pointer;
 }
-.filters > summary.is-active {
+.filter-summary.is-active {
   border-color: var(--vv-amber);
   background: #2A2312;
   color: var(--vv-amber);
 }
-.filters form { margin-top: 0.75rem; }
+
+/* ---- Search page ---- */
+.search-form fieldset { margin-bottom: 1.25rem; }
+.search-form legend {
+  margin-bottom: 0.5rem;
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--vv-muted);
+}
+
+/* A chip is a real radio or checkbox, hidden, with a styled span beside it */
+.chips { display: flex; flex-wrap: wrap; gap: 8px; }
+.chip { position: relative; margin: 0; }
+.chip input {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: 0;
+  opacity: 0;
+}
+.chip span {
+  display: inline-flex;
+  align-items: center;
+  min-height: 40px;
+  padding: 0 14px;
+  border: 1px solid #444444;
+  border-radius: 999px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+.chip input:checked + span {
+  border-color: var(--vv-amber);
+  background: #2A2312;
+  color: var(--vv-amber);
+}
+.chip input:focus-visible + span {
+  outline: 2px solid var(--vv-amber);
+  outline-offset: 2px;
+}
+
+.search-actions { display: flex; gap: 12px; }
+.search-actions > * { margin: 0; }
+.search-actions button { flex: 1; }
+
+
+
 .clear { font-size: 0.85rem; font-weight: 700; text-decoration: none; }
 
 .toggle {
@@ -245,12 +297,7 @@ body {
   color: var(--pico-primary);
 }
 
-/* Until 4.5: show where the Search tab landed */
-#filters:target {
-  outline: 2px solid var(--vv-amber);
-  outline-offset: 6px;
-  border-radius: 8px;
-}
+
 
 /* ---- Card view: a sideways strip that snaps one card into the middle ---- */
 .card-strip {

@@ -1,0 +1,52 @@
+{% extends "base.html" %}
+{% block content %}
+<h1>Search</h1>
+
+<form method="get" action="{{ url_for('index') }}" class="search-form">
+  <input type="hidden" name="layout" value="{{ filters.layout }}">
+  <input type="search" name="q" value="{{ filters.q }}" placeholder="Title, director or cast" aria-label="Search titles, directors or cast">
+
+  <fieldset>
+    <legend>Look in</legend>
+    <div class="chips">
+      {% for value, label in [("collection", "Collection"), ("wishlist", "Wishlist")] %}
+      <label class="chip"><input type="radio" name="view" value="{{ value }}" {{ "checked" if view == value }}><span>{{ label }}</span></label>
+      {% endfor %}
+    </div>
+  </fieldset>
+
+  <fieldset>
+    <legend>Order</legend>
+    <div class="chips">
+      {% for (sort, direction), label in orders %}
+      <label class="chip"><input type="radio" name="order" value="{{ sort }}-{{ direction }}" {{ "checked" if (sort, direction) == current_order }}><span>{{ label }}</span></label>
+      {% endfor %}
+    </div>
+  </fieldset>
+
+  <fieldset>
+    <legend>Format</legend>
+    <div class="chips">
+      <label class="chip"><input type="radio" name="format" value="" {{ "checked" if not filters.format }}><span>All formats</span></label>
+      {% for f in formats %}
+      <label class="chip"><input type="radio" name="format" value="{{ f }}" {{ "checked" if filters.format == f }}><span>{{ f }}</span></label>
+      {% endfor %}
+    </div>
+  </fieldset>
+
+  <fieldset>
+    <legend>Genres</legend>
+    <p class="sub">Pick several to find discs tagged with all of them.</p>
+    <div class="chips">
+      {% for g in genres %}
+      <label class="chip"><input type="checkbox" name="genre" value="{{ g }}" {{ "checked" if g in filters.genres }}><span>{{ g }}</span></label>
+      {% endfor %}
+    </div>
+  </fieldset>
+
+  <div class="search-actions">
+    <a role="button" class="secondary outline" href="{{ url_for('search_page', view=view, layout=filters.layout) }}">Reset</a>
+    <button type="submit">Show results</button>
+  </div>
+</form>
+{% endblock %}

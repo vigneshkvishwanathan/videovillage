@@ -49,7 +49,7 @@ STARTER_AUDIO = ["Dolby Atmos", "DTS:X", "DTS-HD MA 5.1", "Dolby TrueHD 7.1"]
 STARTER_ASPECT_RATIOS = [2.39, 2.20, 1.90, 1.85, 1.78, 1.43]
 
 SUGGESTED_COLUMNS = ["label", "audio_format", "video_format"]  # NEW
-SORTS = [("score", "Highest score"), ("title", "Title A–Z"), ("year", "Newest first")]  # NEW
+
 
 
 def db():
@@ -225,6 +225,9 @@ def read_filters(args):
         "dir": direction if direction in SORT_DIRECTIONS else None,
         "layout": "cards" if args.get("layout") == "cards" else "list",
     }
+    sort_word, _, order_dir = args.get("order", "").partition("-")
+    if (sort_word, order_dir) in SORT_WORDS:
+        filters["sort"], filters["dir"] = sort_word, order_dir
     return view, filters
 
 SORT_WORDS = {
@@ -232,6 +235,12 @@ SORT_WORDS = {
     ("title", "asc"): "A–Z",            ("title", "desc"): "Z–A",
     ("year", "desc"): "Newest",         ("year", "asc"): "Oldest",
 }
+
+def effective_order(filters):
+    """The (sort, direction) pair actually in use. Unknown sorts fall back to highest score."""
+    direction = filters["dir"] or ("asc" if filters["sort"] == "title" else "desc")
+    order = (filters["sort"], direction)
+    return order if order in SORT_WORDS else ("score", "desc")
 
 def filter_summary(filters):
     """One line saying what the list shows, e.g. "Highest score · 4K UHD · War + Drama"."""
@@ -329,9 +338,26 @@ def index():
         counts={"collection": counts.get(True, 0), "wishlist": counts.get(False, 0)},
         genres=used_genres,
         formats=FORMATS,
-        sorts=SORTS,
         summary=filter_summary(filters),
         active=filters_active(filters)
+    )
+
+@app.route("/search")
+def search_page():
+    view, filters = read_filters(request.args)
+    with db() as conn:
+        genres = [
+            row["genre"]
+            for row in conn.execute("SELECT DISTINCT unnest(genres) AS genre FROM discs ORDER BY genre")
+        ]
+    return render_template(
+        "search_page.html",
+        view=view,
+        filters=filters,
+        genres=genres,
+        formats=FORMATS,
+        orders=SORT_WORDS.items(),
+        current_order=effective_order(filters),
     )
 
 

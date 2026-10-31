@@ -12,34 +12,7 @@
 </header>
 
 <div class="list-tools">
-  <details id="filters" class="filters">
-    <summary class="{{ 'is-active' if active }}">{{ summary }}</summary>
-    <form method="get">
-      <input type="hidden" name="view" value="{{ view }}">
-      <input type="hidden" name="layout" value="{{ filters.layout }}">
-      <input name="q" value="{{ filters.q }}" placeholder="Title, director or actor" aria-label="Search">
-      <select name="format" aria-label="Format">
-        <option value="">Any format</option>
-        {% for f in formats %}<option {{ "selected" if filters.format == f }}>{{ f }}</option>{% endfor %}
-      </select>
-      <p>
-        {% for g in genres %}
-        <label style="white-space: nowrap; margin-right: 8px">
-          <input type="checkbox" name="genre" value="{{ g }}" {{ "checked" if g in filters.genres }}> {{ g }}
-        </label>
-        {% endfor %}
-      </p>
-      <select name="sort" aria-label="Sort by">
-        {% for value, label in sorts %}<option value="{{ value }}" {{ "selected" if filters.sort == value }}>{{ label }}</option>{% endfor %}
-      </select>
-      <select name="dir" aria-label="Direction">
-        <option value="">Usual order</option>
-        <option value="asc" {{ "selected" if filters.dir == "asc" }}>Low→high · A→Z · Oldest</option>
-        <option value="desc" {{ "selected" if filters.dir == "desc" }}>High→low · Z→A · Newest</option>
-      </select>
-      <button>Show results</button>
-    </form>
-  </details>
+    <a class="filter-summary {{ 'is-active' if active }}" href="{{ url_for('search_page', **dict(request.args)) }}">{{ summary }}</a>
 
   {% if active %}
   <a class="clear" href="{{ url_for('index', view=view, layout=filters.layout) }}">Clear</a>

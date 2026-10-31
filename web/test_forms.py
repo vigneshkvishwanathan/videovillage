@@ -9,7 +9,8 @@ from decimal import Decimal
 
 from app import (
     clean_text, read_form, used_values, build_filter, read_filters, prepare_disc, 
-    mark_already_have, ratio_choices, text_choices, filter_summary, filters_active
+    mark_already_have, ratio_choices, text_choices, filter_summary, filters_active,
+    effective_order
     )  # noqa: E402
 
 GENRES = ["Drama", "Sci-Fi"]
@@ -220,3 +221,27 @@ def test_summary_uses_each_sort_s_natural_direction():
 def test_sorting_alone_does_not_count_as_filtering():
     assert filters_active(filters_with(sort="year", dir="asc")) is False
     assert filters_active(filters_with(genres=["War"])) is True
+
+def test_an_order_chip_sets_sort_and_direction():
+    view, filters = read_filters(MultiDict({"order": "title-desc"}))
+    assert filters["sort"] == "title"
+    assert filters["dir"] == "desc"
+
+
+@pytest.mark.parametrize("bad", ["title-sideways", "colour-desc", "title", "-desc", ""])
+def test_a_bad_order_is_ignored(bad):
+    view, filters = read_filters(MultiDict({"order": bad}))
+    assert filters["sort"] == "score"
+    assert filters["dir"] is None
+
+
+def test_effective_order_fills_in_the_natural_direction():
+    assert effective_order(filters_with(sort="title")) == ("title", "asc")
+    assert effective_order(filters_with(sort="year", dir="asc")) == ("year", "asc")
+
+
+def test_effective_order_falls_back_to_highest_score():
+    assert effective_order(filters_with(sort="junk")) == ("score", "desc")
+
+
+

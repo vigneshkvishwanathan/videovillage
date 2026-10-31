@@ -24,7 +24,7 @@
       <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="12" cy="12" r="9"></circle><circle cx="12" cy="12" r="2.5"></circle></svg>
       Collection
     </a>
-    <a href="{{ request.full_path if request.endpoint == 'index' else url_for('index') }}#filters">
+            <a href="{{ url_for('search_page', **dict(request.args)) if request.endpoint == 'index' else url_for('search_page') }}" {% if request.endpoint == "search_page" %}aria-current="page"{% endif %}>
       <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"></circle><path d="M20 20l-3.5-3.5"></path></svg>
       Search
     </a>
