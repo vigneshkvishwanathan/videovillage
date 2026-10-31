@@ -40,6 +40,11 @@ STARTER_GENRES = [
     "Historical", "Horror", "Musical", "Mystery", "Romance", "Sci-Fi", "Sports",
     "Superhero", "Thriller", "War", "Western",
 ]
+
+STARTER_VIDEO = ["Dolby Vision", "HDR10", "HDR10+", "SDR"]
+STARTER_AUDIO = ["Dolby Atmos", "DTS:X", "DTS-HD MA 5.1", "Dolby TrueHD 7.1"]
+STARTER_ASPECT_RATIOS = [2.39, 2.20, 1.90, 1.85, 1.78, 1.43]
+
 SUGGESTED_COLUMNS = ["label", "audio_format", "video_format"]  # NEW
 SORTS = [("score", "Highest score"), ("title", "Title A–Z"), ("year", "Newest first")]  # NEW
 
@@ -54,6 +59,17 @@ def genre_choices(conn):  # NEW
     used = [row["genre"] for row in conn.execute("SELECT DISTINCT unnest(genres) AS genre FROM discs")]
     return sorted(set(STARTER_GENRES) | set(used), key=str.lower)
 
+def ratio_choices(used):
+    """Starter ratios plus any used, as plain numbers, each once, widest first."""
+    numbers = {round(float(r), 2) for r in STARTER_ASPECT_RATIOS + list(used)}
+    return sorted(numbers, reverse=True)
+
+def text_choices(starters, used):
+    """Starter values plus any used, each once (ignoring capitals), A to Z."""
+    seen = {}
+    for value in starters + list(used):
+        seen.setdefault(value.lower(), value)
+    return sorted(seen.values(), key=str.lower)
 
 def used_values(conn, column):  # NEW
     """Values already used in a column, to suggest on the form.
@@ -146,9 +162,13 @@ def read_form(form, known_genres):  # NEW: needs the known genres to match spell
 
 
 def show_form(disc, errors, disc_id=None):
-    with db() as conn:  # NEW: the form now offers genres and suggestions from the database
+    with db() as conn:
         genres = genre_choices(conn)
         suggestions = {column: used_values(conn, column) for column in SUGGESTED_COLUMNS}
+        used_ratios = [row["r"] for row in conn.execute("SELECT DISTINCT unnest(aspect_ratios) AS r FROM discs")]
+    suggestions["video_format"] = text_choices(STARTER_VIDEO, suggestions["video_format"])
+    suggestions["audio_format"] = text_choices(STARTER_AUDIO, suggestions["audio_format"])
+    current_ratios = [round(float(r), 2) for r in disc.get("aspect_ratios") or []]
     return render_template(
         "disc_form.html",
         disc=disc,
@@ -159,6 +179,8 @@ def show_form(disc, errors, disc_id=None):
         rating_choices=RATING_CHOICES,
         genre_choices=genres,
         suggestions=suggestions,
+        ratio_choices=ratio_choices(used_ratios + current_ratios),
+        current_ratios=current_ratios,
     )
 
 @app.route("/health")

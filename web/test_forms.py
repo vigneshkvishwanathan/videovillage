@@ -5,7 +5,9 @@ from werkzeug.datastructures import MultiDict
 
 os.environ.setdefault("DATABASE_URL", "postgresql://not-used-by-these-tests")
 
-from app import clean_text, read_form, used_values, build_filter, read_filters, prepare_disc, mark_already_have  # noqa: E402
+from decimal import Decimal
+
+from app import clean_text, read_form, used_values, build_filter, read_filters, prepare_disc, mark_already_have, ratio_choices, text_choices  # noqa: E402
 
 GENRES = ["Drama", "Sci-Fi"]
 
@@ -168,3 +170,26 @@ def test_new_films_have_no_badge():
     results = mark_already_have([dict(m) for m in SEARCH_RESULTS], HAVE)
     assert results[0]["badge"] is None
     assert results[0]["disc_id"] is None
+
+def test_text_choices_merge_starters_with_used_values():
+    assert text_choices(["Dolby Atmos", "DTS:X"], ["Auro-3D"]) == ["Auro-3D", "Dolby Atmos", "DTS:X"]
+
+
+def test_text_choices_ignore_capitals_when_dropping_duplicates():
+    assert text_choices(["Dolby Atmos"], ["dolby atmos"]) == ["Dolby Atmos"]
+
+
+def test_ratio_choices_include_starters_and_used_ones():
+    choices = ratio_choices([Decimal("1.66")])
+    assert 1.66 in choices
+    assert 2.39 in choices
+
+
+def test_ratio_choices_do_not_repeat_a_starter_that_came_from_the_database():
+    choices = ratio_choices([Decimal("2.39")])
+    assert choices.count(2.39) == 1
+
+
+def test_ratio_choices_are_widest_first():
+    choices = ratio_choices([])
+    assert choices == sorted(choices, reverse=True)
