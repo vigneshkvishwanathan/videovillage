@@ -58,7 +58,7 @@
     {% set spec_2 = [disc.video_format, disc.audio_format] | select | join(" · ") %}
     <tr>
       <td>{% if disc.poster_path %}<img src="{{ poster_base }}{{ disc.poster_path }}" class="poster" alt="">{% endif %}</td>
-      <td><span class="score score-{{ disc.band }}">{{ "%g" | format(disc.score) if disc.score is not none else "–" }}</span></td>
+      <td><span class="score-num band-{{ disc.band }}">{{ "%g" | format(disc.score) if disc.score is not none else "–" }}</span></td>
       <td>
         <a class="title-link" href="{{ url_for('show_disc', disc_id=disc.id) }}">{{ disc.title }}</a>
         {% if made %}<div class="sub">{{ made }}</div>{% endif %}

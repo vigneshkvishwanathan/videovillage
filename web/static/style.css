@@ -106,21 +106,54 @@ body {
   line-height: 1.4;
 }
 
-/* Score badges: the colour comes from score_band() in rules.py */
-.score {
-  display: inline-block;
-  min-width: 3.2rem;
-  padding: 0.2rem 0.5rem;
-  border-radius: 0.4rem;
-  text-align: center;
+/* ---- Band colours: each class only sets --band; components decide how to use it ---- */
+.band-green  { --band: #44CE1B; }
+.band-lime   { --band: #BBDB44; }
+.band-yellow { --band: #F7E379; }
+.band-orange { --band: #F2A134; }
+.band-red    { --band: #E51F1F; }
+.band-none   { --band: var(--vv-muted); }
+
+/* A score as a coloured number (list rows) */
+.score-num {
+  font-family: "Oswald", "Arial Narrow", sans-serif;
+  font-size: 1.5rem;
   font-weight: 600;
+  color: var(--band);
+  font-variant-numeric: tabular-nums;
 }
-.score-green  { background: #44CE1B; color: #0B1A05; }
-.score-lime   { background: #BBDB44; color: #1A1F06; }
-.score-yellow { background: #F7E379; color: #2A2406; }
-.score-orange { background: #F2A134; color: #2A1704; }
-.score-red    { background: #E51F1F; color: #FFFFFF; }
-.score-none { color: var(--pico-muted-color); }
+/* The big one on the detail page */
+.score-big {
+  font-size: 3rem;
+  line-height: 1;
+}
+
+/* A rating: label, bar, number */
+.rating {
+  display: grid;
+  grid-template-columns: 7.5rem 1fr 2.5rem;
+  align-items: center;
+  gap: 0.75rem;
+  margin-bottom: 0.6rem;
+}
+.rating-bar {
+  height: 8px;
+  border-radius: 999px;
+  background: var(--vv-line);
+  overflow: hidden;
+}
+.rating-bar > span {
+  display: block;
+  height: 100%;
+  border-radius: 999px;
+  background: var(--band);
+}
+.rating-num {
+  text-align: right;
+  font-weight: 700;
+  color: var(--band);
+  font-variant-numeric: tabular-nums;
+}
 
 /* Pills: format and genres as small rounded tags; 4K gets the accent colour */
 .pill {

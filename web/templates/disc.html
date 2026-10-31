@@ -17,7 +17,7 @@
 {% if disc.owned %}
   <h3>Score</h3>
   {% if disc.score is not none %}
-    <p><span class="score score-{{ disc.band }}">{{ "%g" | format(disc.score) }}</span></p>
+    <p><span class="score-num score-big band-{{ disc.band }}">{{ "%g" | format(disc.score) }}</span></p>
   {% elif disc.viewings %}
     <p>Not fully rated yet. Set all four ratings to get a score.</p>
   {% else %}
@@ -30,10 +30,12 @@
   </form>
 
   <h3>Ratings</h3>
-  {% for r in disc.rating_rows %}
-  <p>{{ r.label }}:
-    <span class="score score-{{ r.band }}">{{ "%g" | format(r.value) if r.value is not none else "–" }}</span>
-  </p>
+    {% for r in disc.rating_rows %}
+  <div class="rating band-{{ r.band }}">
+    <span>{{ r.label }}</span>
+    <span class="rating-bar"><span style="width: {{ '%.0f' | format(r.value * 20) if r.value is not none else 0 }}%"></span></span>
+    <span class="rating-num">{{ "%g" | format(r.value) if r.value is not none else "–" }}</span>
+  </div>
   {% endfor %}
 {% else %}
   <form method="post" action="{{ url_for('mark_owned', disc_id=disc.id) }}">
