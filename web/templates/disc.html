@@ -1,63 +1,125 @@
 {% extends "base.html" %}
+{% block brand %}{% endblock %}
 {% block content %}
-<p><a href="{{ url_for('index', view='collection' if disc.owned else 'wishlist') }}">← Back</a></p>
+{% set back = url_for('index', view='collection' if disc.owned else 'wishlist') %}
+<nav class="top-bar">
+  <a class="icon-button" href="{{ back }}" aria-label="Back to the list">
+    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 5l-7 7 7 7"></path></svg>
+  </a>
+</nav>
 
-<div style="overflow: hidden">
+<header class="detail-head">
   {% if disc.poster_path %}
-  <img src="{{ poster_base }}{{ disc.poster_path }}" width="140" alt="" style="float: left; margin-right: 16px">
+  <img class="detail-poster" src="{{ poster_big }}{{ disc.poster_path }}" alt="">
+  {% else %}
+  <span class="detail-poster"></span>
   {% endif %}
-  <h2 style="margin-bottom: 4px">{{ disc.title }}</h2>
-  <p class="sub">
-    {{ [disc.release_year, ("%d min" | format(disc.runtime_minutes)) if disc.runtime_minutes else none] | select | join(" · ") }}
-  </p>
-  {% if disc.directors %}<p>Directed by {{ disc.directors }}</p>{% endif %}
-  <p><span class="pill{{ ' pill-4k' if disc.disc_format == '4K UHD' }}">{{ disc.disc_format }}</span></p>
-</div>
+  <div class="detail-title">
+    <h1>{{ disc.title }}</h1>
+    <p class="sub">
+      {{ [disc.release_year, ("%d min" | format(disc.runtime_minutes)) if disc.runtime_minutes else none] | select | join(" · ") }}
+    </p>
+    {% if disc.directors %}<p class="sub">Directed by {{ disc.directors }}</p>{% endif %}
+    <p class="badges">
+      {% if disc.disc_format %}<span class="pill{{ ' pill-4k' if disc.disc_format == '4K UHD' }}">{{ disc.disc_format }}</span>{% endif %}
+      <span class="pill">{{ "In collection" if disc.owned else "On wishlist" }}</span>
+    </p>
+  </div>
+</header>
+
+{% if not disc.owned %}
+  <section class="panel state-card">
+    <h2>On your wishlist</h2>
+    <p class="sub">Picked it up? Mark it as yours, then fill in the disc specs.</p>
+    <form method="post" action="{{ url_for('mark_owned', disc_id=disc.id) }}">
+      <button class="go-button">I own it</button>
+    </form>
+  </section>
+
+{% elif disc.score is not none %}
+  <section class="panel score-card band-{{ disc.band }}">
+    <div>
+      <p class="eyebrow">Score</p>
+      <p class="score-num score-big">{{ "%g" | format(disc.score) }}</p>
+    </div>
+    <form method="post" action="{{ url_for('add_viewing', disc_id=disc.id) }}" class="viewing-form">
+      <p class="sub">Watched {{ disc.viewings }}×</p>
+      <button class="outline">+1 viewing</button>
+    </form>
+  </section>
+
+{% else %}
+  <section class="panel state-card">
+    {% if disc.viewings %}
+    <h2>Not fully rated</h2>
+    <p class="sub">Watched {{ disc.viewings }}×. Set all four ratings in Edit to get a score.</p>
+    {% else %}
+    <h2>Not watched yet</h2>
+    <p class="sub">Ratings unlock after your first viewing.</p>
+    {% endif %}
+    <form method="post" action="{{ url_for('add_viewing', disc_id=disc.id) }}">
+      <button class="outline">+1 viewing</button>
+    </form>
+  </section>
+{% endif %}
 
 {% if disc.owned %}
-  <h3>Score</h3>
-  {% if disc.score is not none %}
-    <p><span class="score-num score-big band-{{ disc.band }}">{{ "%g" | format(disc.score) }}</span></p>
-  {% elif disc.viewings %}
-    <p>Not fully rated yet. Set all four ratings to get a score.</p>
-  {% else %}
-    <p>Not watched yet. Ratings unlock after your first viewing.</p>
-  {% endif %}
-    <form method="post" action="{{ url_for('add_viewing', disc_id=disc.id) }}">
-    <p>Watched {{ disc.viewings }}×
-      <button>+1 viewing</button>
-    </p>
-  </form>
-
-  <h3>Ratings</h3>
-    {% for r in disc.rating_rows %}
+<section class="detail-section">
+  <h2 class="eyebrow">Ratings</h2>
+  {% for r in disc.rating_rows %}
   <div class="rating band-{{ r.band }}">
     <span>{{ r.label }}</span>
     <span class="rating-bar"><span style="width: {{ '%.0f' | format(r.value * 20) if r.value is not none else 0 }}%"></span></span>
     <span class="rating-num">{{ "%g" | format(r.value) if r.value is not none else "–" }}</span>
   </div>
   {% endfor %}
-{% else %}
-  <form method="post" action="{{ url_for('mark_owned', disc_id=disc.id) }}">
-    <p><strong>On your wishlist.</strong>
-      <button>I own it</button>
-    </p>
-  </form>
+</section>
 {% endif %}
 
-{% if disc.overview %}<h3>About</h3><p>{{ disc.overview }}</p>{% endif %}
-{% if disc.genres %}<p>{% for g in disc.genres %}<span class="pill">{{ g }}</span>{% endfor %}</p>{% endif %}
+{% if disc.overview %}
+<section class="detail-section">
+  <h2 class="eyebrow">About</h2>
+  <p>{{ disc.overview }}</p>
+</section>
+{% endif %}
 
-<h3>The disc</h3>
-<ul>
-  {% if disc.label %}<li>Label: {{ disc.label }}</li>{% endif %}
-  {% if disc.video_format %}<li>Video: {{ disc.video_format }}</li>{% endif %}
-  {% if disc.audio_format %}<li>Audio: {{ disc.audio_format }}</li>{% endif %}
-  {% if disc.aspect_ratios %}<li>Aspect ratio: {{ disc.aspect_ratios | join(":1, ") }}:1</li>{% endif %}
-  {% if disc.notes %}<li>Notes: {{ disc.notes }}</li>{% endif %}
-</ul>
+{% if disc.genres %}
+<section class="detail-section">
+  <h2 class="eyebrow">Genres</h2>
+  <p>{% for g in disc.genres %}<a class="pill" href="{{ url_for('index', view='collection' if disc.owned else 'wishlist', genre=g) }}">{{ g }}</a>{% endfor %}</p>
+</section>
+{% endif %}
 
-{% if disc.top_cast %}<h3>Top cast</h3><p>{{ disc.top_cast }}</p>{% endif %}
+{% set specs = [
+  ("Label", disc.label),
+  ("Video", disc.video_format),
+  ("Audio", disc.audio_format),
+  ("Aspect ratio", disc.aspect_ratios | map("ratio") | join(", ")),
+  ("Notes", disc.notes),
+] %}
+{% if specs | selectattr(1) | list %}
+<section class="detail-section">
+  <h2 class="eyebrow">The disc</h2>
+  <dl class="specs">
+    {% for name, value in specs if value %}
+    <dt>{{ name }}</dt><dd>{{ value }}</dd>
+    {% endfor %}
+  </dl>
+</section>
+{% endif %}
 
-<p><a role="button" href="{{ url_for('edit_disc', disc_id=disc.id) }}">Edit</a></p>
+{% if disc.top_cast %}
+<section class="detail-section">
+  <h2 class="eyebrow">Top cast</h2>
+  <p>{{ disc.top_cast }}</p>
+</section>
+{% endif %}
+
+<div class="detail-actions">
+  <a role="button" class="secondary outline" href="{{ url_for('edit_disc', disc_id=disc.id) }}">Edit</a>
+  <form method="post" action="{{ url_for('delete_disc', disc_id=disc.id) }}"
+        onsubmit='return confirm({{ ("Delete " ~ disc.title ~ "? This can’t be undone.") | tojson }})'>
+    <button class="danger">Delete</button>
+  </form>
+</div>
 {% endblock %}

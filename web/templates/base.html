@@ -9,22 +9,23 @@
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@picocss/pico@2.1.1/css/pico.min.css">
   <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 </head>
-<body>
+<body class="{% block body_class %}{% endblock %}">
   <main class="container">
-    <a class="brand" href="{{ url_for('index') }}">Video Village</a>
+    {% block brand %}<a class="brand" href="{{ url_for('index') }}">Video Village</a>{% endblock %}
     {% with messages = get_flashed_messages() %}
       {% for message in messages %}<article role="status">{{ message }}</article>{% endfor %}
     {% endwith %}
     {% block content %}{% endblock %}
   </main>
 
+  {% block tabbar %}
   {% set on_wishlist = request.args.get("view") == "wishlist" %}
   <nav class="tabbar" aria-label="Main">
     <a href="{{ url_for('index') }}" {% if request.endpoint == "index" and not on_wishlist %}aria-current="page"{% endif %}>
       <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="12" cy="12" r="9"></circle><circle cx="12" cy="12" r="2.5"></circle></svg>
       Collection
     </a>
-            <a href="{{ url_for('search_page', **dict(request.args)) if request.endpoint == 'index' else url_for('search_page') }}" {% if request.endpoint == "search_page" %}aria-current="page"{% endif %}>
+    <a href="{{ url_for('search_page', **dict(request.args)) if request.endpoint == 'index' else url_for('search_page') }}" {% if request.endpoint == "search_page" %}aria-current="page"{% endif %}>
       <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"></circle><path d="M20 20l-3.5-3.5"></path></svg>
       Search
     </a>
@@ -33,5 +34,7 @@
       Wishlist
     </a>
   </nav>
+  {% endblock %}
+  {% block scripts %}{% endblock %}
 </body>
 </html>
