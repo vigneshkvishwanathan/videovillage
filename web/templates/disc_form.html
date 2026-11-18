@@ -1,79 +1,157 @@
 {% extends "base.html" %}
-{% block content %}
-<h2>{{ "Edit disc" if disc_id else "Add a disc" }}</h2>
+{% block body_class %}fullscreen{% endblock %}
+{% block brand %}{% endblock %}
+{% block tabbar %}{% endblock %}
 
-{% for error in errors %}<p style="color: red">{{ error }}</p>{% endfor %}
+{# A "+ New" chip: a dashed chip that opens a small text box. No JavaScript: <details> does the opening. #}
+{% macro new_chip(name, placeholder, label="+ New") %}
+<details class="new-chip">
+  <summary>{{ label }}</summary>
+  <input name="{{ name }}" placeholder="{{ placeholder }}" aria-label="{{ placeholder }}">
+</details>
+{% endmacro %}
+
+{% macro pick_one(name, choices, current) %}
+<div class="chips">
+  <label class="chip"><input type="radio" name="{{ name }}" value="" {{ "checked" if not current }}><span>None</span></label>
+  {% for v in choices %}
+  <label class="chip"><input type="radio" name="{{ name }}" value="{{ v }}" {{ "checked" if current == v }}><span>{{ v }}</span></label>
+  {% endfor %}
+  {% if current and current not in choices %}
+  <label class="chip"><input type="radio" name="{{ name }}" value="{{ current }}" checked><span>{{ current }}</span></label>
+  {% endif %}
+  {{ new_chip("new_" ~ name, "Type a new one") }}
+</div>
+{% endmacro %}
+
+{% block content %}
+{% set owned = disc.owned if disc.owned is defined else true %}
+<nav class="top-bar">
+  <h1>{{ "Edit disc" if disc_id else "Add a disc" }}</h1>
+  <a class="icon-button" href="{{ url_for('show_disc', disc_id=disc_id) if disc_id else url_for('search_tmdb') }}" aria-label="Close">
+    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"></path></svg>
+  </a>
+</nav>
+
+{% for error in errors %}<p class="error" role="alert">{{ error }}</p>{% endfor %}
 
 {% if disc.poster_path or disc.directors %}
-<div style="overflow: hidden">
-  {% if disc.poster_path %}
-  <img src="{{ poster_base }}{{ disc.poster_path }}" width="120" alt="" style="float: left; margin-right: 12px">
-  {% endif %}
-  {% if disc.directors %}<p>Directed by {{ disc.directors }}</p>{% endif %}
-  {% if disc.top_cast %}<p>Starring {{ disc.top_cast }}</p>{% endif %}
-  {% if disc.runtime_minutes %}<p>{{ disc.runtime_minutes }} minutes</p>{% endif %}
-  {% if disc.overview %}<p>{{ disc.overview }}</p>{% endif %}
-</div>
+<header class="detail-head form-head">
+  {% if disc.poster_path %}<img class="detail-poster" src="{{ poster_base }}{{ disc.poster_path }}" alt="">{% endif %}
+  <div class="detail-title">
+    <p class="row-title">{{ disc.title }}</p>
+    <p class="sub">{{ [disc.release_year, ("%d min" | format(disc.runtime_minutes)) if disc.runtime_minutes else none] | select | join(" · ") }}</p>
+    {% if disc.directors %}<p class="sub">Directed by {{ disc.directors }}</p>{% endif %}
+  </div>
+</header>
 {% endif %}
 
-<form method="post">
+<form method="post" class="disc-form">
   <input type="hidden" name="tmdb_id" value="{{ disc.tmdb_id or '' }}">
-  <p><label>Title <input name="title" value="{{ disc.title or '' }}" required></label></p>
-  <p><label>Year <input name="release_year" type="number" value="{{ disc.release_year or '' }}"></label></p>
-  <p>Format
-    {% for f in formats %}
-    <label><input type="radio" name="disc_format" value="{{ f }}" {{ "checked" if disc.disc_format == f }}> {{ f }}</label>
-    {% endfor %}
-  </p>
-  <p><label>Label <input name="label" list="label-options" value="{{ disc.label or '' }}"></label></p>
-  <p><label>Audio format <input name="audio_format" list="audio-options" value="{{ disc.audio_format or '' }}"></label></p>
-  <p><label>Video format <input name="video_format" list="video-options" value="{{ disc.video_format or '' }}"></label></p>
-    <p>Aspect ratios
-      {% for r in ratio_choices %}
-      <label style="white-space: nowrap; margin-right: 8px">
-        <input type="checkbox" name="aspect_ratios" value="{{ '%.2f' | format(r) }}" {{ "checked" if r in current_ratios }}> {{ "%.2f" | format(r) }}:1
-      </label>
+
+  <fieldset>
+    <legend>Add to</legend>
+    <div class="chips">
+      <label class="chip"><input type="radio" name="owned" value="on" {{ "checked" if owned }}><span>Collection</span></label>
+      <label class="chip"><input type="radio" name="owned" value="off" {{ "checked" if not owned }}><span>Wishlist</span></label>
+    </div>
+  </fieldset>
+
+  <div class="two-up">
+    <label>Title <input name="title" value="{{ disc.title or '' }}" required></label>
+    <label>Year <input name="release_year" type="number" inputmode="numeric" value="{{ disc.release_year or '' }}"></label>
+  </div>
+
+  <fieldset>
+    <legend>Format</legend>
+    <div class="chips">
+      {% for f in formats %}
+      <label class="chip"><input type="radio" name="disc_format" value="{{ f }}" {{ "checked" if disc.disc_format == f }} required><span>{{ f }}</span></label>
       {% endfor %}
-      <label>Add <input name="new_aspect_ratio" placeholder="e.g. 2.40:1"></label>
-    </p>
-  <p><label><input type="checkbox" name="owned" {{ "checked" if disc.owned }}> I own this (untick for the wishlist)</label></p>
+    </div>
+  </fieldset>
 
-  <datalist id="label-options">{% for v in suggestions.label %}<option value="{{ v }}">{% endfor %}</datalist>
-  <datalist id="audio-options">{% for v in suggestions.audio_format %}<option value="{{ v }}">{% endfor %}</datalist>
-  <datalist id="video-options">{% for v in suggestions.video_format %}<option value="{{ v }}">{% endfor %}</datalist>
+  <fieldset>
+    <legend>Times watched</legend>
+    <div class="stepper">
+      <button type="button" class="outline" data-step="-1" aria-label="One fewer viewing">−</button>
+      <input name="viewings" type="number" min="0" inputmode="numeric" value="{{ disc.viewings or 0 }}" aria-label="Times watched">
+      <button type="button" class="outline" data-step="1" aria-label="One more viewing">+</button>
+    </div>
+  </fieldset>
 
-  <h3>Genres</h3>
-  <p>
-    {% for g in genre_choices %}
-    <label style="white-space: nowrap; margin-right: 8px">
-      <input type="checkbox" name="genres" value="{{ g }}" {{ "checked" if g in (disc.genres or []) }}> {{ g }}
-    </label>
-    {% endfor %}
-  </p>
-  <p><label>New genres <input name="new_genres" placeholder="e.g. Biopic, Heist"></label></p>
-
-  <h3>Watched & rated</h3>
-  <p><label>Viewings <input name="viewings" type="number" min="0" value="{{ disc.viewings or 0 }}"></label></p>
   {% for field, label in ratings %}
-  <p><label>{{ label }}
-    <select name="{{ field }}">
-      <option value="">–</option>
+  <fieldset>
+    <legend>{{ label }}</legend>
+    <div class="chips chips-tight">
+      <label class="chip"><input type="radio" name="{{ field }}" value="" {{ "checked" if disc[field] is none }}><span>Not rated</span></label>
       {% for r in rating_choices %}
-      <option value="{{ r }}" {{ "selected" if disc[field] == r }}>{{ "%g"|format(r) }}</option>
+      <label class="chip"><input type="radio" name="{{ field }}" value="{{ r }}" {{ "checked" if disc[field] is not none and disc[field] == r }}><span>{{ "%g" | format(r) }}</span></label>
       {% endfor %}
-    </select>
-  </label></p>
+    </div>
+  </fieldset>
   {% endfor %}
+  <p class="sub">Ratings need at least one viewing.</p>
 
-  <p><label>Notes<br><textarea name="notes" rows="3">{{ disc.notes or '' }}</textarea></label></p>
-  <button>Save</button>
-  <a href="{{ url_for('index') }}">Cancel</a>
-</form>
+  <label>Label <input name="label" list="label-options" value="{{ disc.label or '' }}" placeholder="e.g. Criterion"></label>
+  <datalist id="label-options">{% for v in suggestions.label %}<option value="{{ v }}">{% endfor %}</datalist>
 
-{% if disc_id %}
-<form method="post" action="{{ url_for('delete_disc', disc_id=disc_id) }}"
-      onsubmit="return confirm('Delete this disc?')">
-  <button>Delete</button>
+  <fieldset>
+    <legend>Video</legend>
+    {{ pick_one("video_format", suggestions.video_format, disc.video_format) }}
+  </fieldset>
+
+  <fieldset>
+    <legend>Audio</legend>
+    {{ pick_one("audio_format", suggestions.audio_format, disc.audio_format) }}
+  </fieldset>
+
+  <fieldset>
+    <legend>Aspect ratios</legend>
+    <div class="chips">
+      {% for r in ratio_choices %}
+      <label class="chip"><input type="checkbox" name="aspect_ratios" value="{{ '%.2f' | format(r) }}" {{ "checked" if r in current_ratios }}><span>{{ r | ratio }}</span></label>
+      {% endfor %}
+      {% if more_ratios %}
+      <details class="new-chip more-chip">
+        <summary>More…</summary>
+        <div class="chips">
+          {% for r in more_ratios %}
+          <label class="chip"><input type="checkbox" name="aspect_ratios" value="{{ '%.2f' | format(r) }}"><span>{{ r | ratio }}</span></label>
+          {% endfor %}
+        </div>
+      </details>
+      {% endif %}
+      {{ new_chip("new_aspect_ratio", "e.g. 2.40:1") }}
+    </div>
+  </fieldset>
+
+  <fieldset>
+    <legend>Genres</legend>
+    <div class="chips">
+      {% for g in genre_choices %}
+      <label class="chip"><input type="checkbox" name="genres" value="{{ g }}" {{ "checked" if g in (disc.genres or []) }}><span>{{ g }}</span></label>
+      {% endfor %}
+      {{ new_chip("new_genres", "e.g. Biopic, Heist") }}
+    </div>
+  </fieldset>
+
+  <label>Notes <textarea name="notes" rows="3">{{ disc.notes or '' }}</textarea></label>
+
+  <button class="save-button">
+    {% if disc_id %}Save changes{% else %}<span class="when-owned">Add to collection</span><span class="when-wishlist">Add to wishlist</span>{% endif %}
+  </button>
 </form>
-{% endif %}
+{% endblock %}
+
+{% block scripts %}
+<script>
+  // The − / + buttons next to "Times watched". Without JavaScript the number box still works.
+  document.querySelectorAll(".stepper [data-step]").forEach(function (button) {
+    button.addEventListener("click", function () {
+      var box = button.parentElement.querySelector("input");
+      box.value = Math.max(0, (parseInt(box.value, 10) || 0) + Number(button.dataset.step));
+    });
+  });
+</script>
 {% endblock %}

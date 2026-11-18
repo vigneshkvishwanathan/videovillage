@@ -357,3 +357,180 @@ body {
 .card-title { margin: 10px 0 0; text-align: center; font-size: 1.1rem; font-weight: 700; }
 .card .sub { margin: 0; text-align: center; }
 .card-hint { text-align: center; }
+
+
+/* ---- Top bar on full-screen pages: title on the left, a round icon button ---- */
+.top-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+.top-bar h1 { margin: 0; font-size: 1.5rem; }
+.icon-button {
+  display: grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  flex-shrink: 0;
+  border-radius: 999px;
+  background: var(--vv-panel);
+  color: var(--vv-text);
+}
+/* Full-screen pages have no tab bar, so they don't need room for it */
+body.fullscreen { padding-bottom: env(safe-area-inset-bottom, 0px); }
+
+.eyebrow {
+  margin: 0 0 0.5rem;
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--vv-muted);
+}
+.error { color: #FF6B6B; font-weight: 600; }
+.panel {
+  margin-bottom: 1.5rem;
+  padding: 1rem 1.1rem;
+  border: 1px solid var(--vv-line);
+  border-radius: 16px;
+  background: var(--vv-panel);
+}
+
+/* ---- Detail page ---- */
+.detail-head {
+  display: flex;
+  gap: 16px;
+  align-items: flex-end;
+  margin-bottom: 1.5rem;
+}
+.detail-poster {
+  width: 132px;
+  aspect-ratio: 2 / 3;
+  flex-shrink: 0;
+  border-radius: 12px;
+  object-fit: cover;
+  background: var(--vv-panel);
+}
+.detail-title { min-width: 0; }
+.detail-title h1 {
+  margin: 0 0 0.25rem;
+  font-family: "Oswald", "Arial Narrow", sans-serif;
+  font-size: 1.9rem;
+  line-height: 1.05;
+  text-transform: uppercase;
+}
+.detail-title p { margin: 0 0 0.2rem; }
+.badges { margin-top: 0.5rem !important; }
+.form-head .detail-poster { width: 72px; }
+
+.score-card {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  border-color: var(--band);
+  background: color-mix(in srgb, var(--band) 8%, var(--vv-panel));
+}
+.score-card .score-big { margin: 0; font-size: 3.5rem; }
+.viewing-form { text-align: right; }
+.viewing-form p { margin: 0 0 0.4rem; }
+.state-card h2 { margin: 0 0 0.25rem; font-size: 1.15rem; }
+.state-card form { margin: 0.75rem 0 0; }
+.panel button { width: auto; margin: 0; }
+
+.detail-section { margin-bottom: 1.5rem; }
+.detail-section p { margin-bottom: 0; }
+a.pill { text-decoration: none; }
+
+.specs {
+  display: grid;
+  grid-template-columns: 7.5rem 1fr;
+  gap: 0.4rem 0.75rem;
+  margin: 0;
+}
+.specs dt { color: var(--vv-muted); font-weight: 400; }
+.specs dd { margin: 0; }
+
+.detail-actions { display: flex; gap: 12px; margin-top: 2rem; }
+.detail-actions > * { flex: 1; margin: 0; }
+.detail-actions button, .detail-actions [role="button"] { width: 100%; margin: 0; }
+button.danger {
+  --pico-background-color: transparent;
+  --pico-border-color: #E5484D;
+  --pico-color: #FF6B6B;
+}
+.go-button {
+  --pico-background-color: var(--vv-green);
+  --pico-border-color: var(--vv-green);
+  --pico-color: #03200D;
+  font-weight: 700;
+}
+
+/* ---- Add disc, step 1: TMDb results ---- */
+.disc-row .pill { flex-shrink: 0; }
+.disc-row.is-owned { opacity: 0.5; }
+.by-hand { margin-top: 1.25rem; text-align: center; font-size: 0.9rem; }
+.tmdb-credit { margin-top: 2rem; text-align: center; font-size: 0.72rem; color: var(--vv-muted); }
+
+/* ---- Disc form ---- */
+.disc-form fieldset { margin-bottom: 1.25rem; }
+.disc-form legend {
+  margin-bottom: 0.5rem;
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--vv-muted);
+}
+.two-up { display: grid; grid-template-columns: 1fr 6.5rem; gap: 12px; }
+.chips-tight { gap: 6px; }
+.chips-tight .chip span { min-width: 40px; min-height: 36px; justify-content: center; padding: 0 8px; font-size: 0.85rem; }
+
+.stepper { display: flex; align-items: center; gap: 8px; max-width: 220px; }
+.stepper button { width: 48px; height: 48px; margin: 0; padding: 0; font-size: 1.4rem; line-height: 1; }
+.stepper input { margin: 0; text-align: center; font-weight: 700; }
+
+/* "+ New" and "More…": dashed chips that open in place */
+.new-chip summary {
+  display: inline-flex;
+  align-items: center;
+  min-height: 40px;
+  padding: 0 14px;
+  border: 1px dashed #666666;
+  border-radius: 999px;
+  color: var(--vv-muted);
+  font-size: 0.9rem;
+  font-weight: 600;
+  list-style: none;
+  cursor: pointer;
+}
+.new-chip summary::-webkit-details-marker { display: none; }
+.new-chip summary::after { display: none; }   /* Pico draws an arrow on summaries */
+.new-chip[open] { flex-basis: 100%; }
+.new-chip[open] summary { border-color: var(--vv-amber); color: var(--vv-amber); }
+.new-chip input { margin: 8px 0 0; }
+.more-chip .chips { margin-top: 8px; }
+
+.save-button {
+  width: 100%;
+  min-height: 52px;
+  margin-top: 0.5rem;
+  --pico-background-color: var(--vv-green);
+  --pico-border-color: var(--vv-green);
+  --pico-color: #03200D;
+  font-weight: 700;
+}
+/* The Add button says where the disc is going, with no JavaScript */
+.disc-form .when-wishlist { display: none; }
+.disc-form:has(input[name="owned"][value="off"]:checked) .when-wishlist { display: inline; }
+.disc-form:has(input[name="owned"][value="off"]:checked) .when-owned { display: none; }
+
+/* ---- Desktop: a phone-width column in the middle, not a stretched page ---- */
+main.container { max-width: 640px; }
+.tabbar { padding-left: max(0px, calc(50% - 320px)); padding-right: max(0px, calc(50% - 320px)); }
+@media (min-width: 700px) {
+  .card-strip { margin: 0; padding: 4px calc(50% - 160px) 12px; }
+  .card { flex-basis: 320px; }
+}

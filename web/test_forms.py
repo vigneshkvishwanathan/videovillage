@@ -10,7 +10,7 @@ from decimal import Decimal
 from app import (
     clean_text, read_form, used_values, build_filter, read_filters, prepare_disc, 
     mark_already_have, ratio_choices, text_choices, filter_summary, filters_active,
-    effective_order
+    effective_order, ratio_chip_groups, ratio_label
     )  # noqa: E402
 
 GENRES = ["Drama", "Sci-Fi"]
@@ -245,3 +245,53 @@ def test_effective_order_falls_back_to_highest_score():
 
 
 
+
+
+# ---- Disc form: "+ New" values and the aspect ratio chips ----
+
+def test_a_typed_video_format_wins_over_the_picked_chip():
+    disc, errors = read_form(valid_form(video_format="SDR", new_video_format="  Dolby Vision IQ "), GENRES)
+    assert errors == []
+    assert disc["video_format"] == "Dolby Vision IQ"
+
+
+def test_a_picked_audio_chip_is_used_when_nothing_is_typed():
+    disc, _ = read_form(valid_form(audio_format="Dolby Atmos", new_audio_format=""), GENRES)
+    assert disc["audio_format"] == "Dolby Atmos"
+
+
+def test_the_none_chip_leaves_the_format_empty():
+    disc, _ = read_form(valid_form(video_format=""), GENRES)
+    assert disc["video_format"] is None
+
+
+def test_wishlist_chip_means_not_owned():
+    disc, _ = read_form(valid_form(owned="off"), GENRES)
+    assert disc["owned"] is False
+    disc, _ = read_form(valid_form(owned="on"), GENRES)
+    assert disc["owned"] is True
+
+
+def test_most_used_ratios_are_shown_and_the_rest_go_behind_more():
+    counts = {Decimal("2.39"): 90, Decimal("1.78"): 40, Decimal("2.00"): 3, Decimal("1.33"): 1}
+    shown, more = ratio_chip_groups(counts, [], top=3)
+    assert shown == [2.39, 2.0, 1.78]
+    assert 1.33 in more and 2.39 not in more
+
+
+def test_a_ratio_the_disc_already_has_is_never_hidden():
+    counts = {Decimal("2.39"): 90, Decimal("1.78"): 40, Decimal("1.33"): 1}
+    shown, more = ratio_chip_groups(counts, [Decimal("1.33")], top=2)
+    assert 1.33 in shown and 1.33 not in more
+
+
+def test_every_ratio_lands_in_exactly_one_group():
+    counts = {Decimal("2.39"): 5, Decimal("2.76"): 1}
+    shown, more = ratio_chip_groups(counts, [], top=8)
+    assert sorted(shown + more) == sorted(set(shown + more))
+    assert set(shown + more) == set(ratio_choices(list(counts)))
+
+
+def test_ratios_are_written_like_on_the_case():
+    assert ratio_label(Decimal("2.39")) == "2.39:1"
+    assert ratio_label(2.2) == "2.20:1"

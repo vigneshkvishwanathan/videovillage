@@ -26,6 +26,12 @@ app.jinja_env.globals["poster_big"] = tmdb.POSTER_BIG
 DATABASE_URL = os.environ["DATABASE_URL"]
 
 
+@app.template_filter("ratio")
+def ratio_label(value):
+    """2.39 -> "2.39:1", the way aspect ratios are written on disc cases."""
+    return f"{float(value):.2f}:1"
+
+
 FORMATS = ["4K UHD", "Blu-ray"]
 RATING_LABELS = {
     "audio_rating": "Audio",
@@ -66,6 +72,21 @@ def ratio_choices(used):
     """Starter ratios plus any used, as plain numbers, each once, widest first."""
     numbers = {round(float(r), 2) for r in STARTER_ASPECT_RATIOS + list(used)}
     return sorted(numbers, reverse=True)
+
+def ratio_chip_groups(used_counts, current, top=8):
+    """Split the ratio chips into (shown, behind "More…").
+
+    `used_counts` maps ratio -> how many discs use it. The `top` most-used are shown,
+    plus any this disc already has, so a ticked chip is never hidden. Each group is
+    widest first.
+    """
+    counts = {round(float(r), 2): n for r, n in used_counts.items()}
+    current = [round(float(r), 2) for r in current]
+    choices = ratio_choices(list(counts) + current)
+    ranked = sorted(choices, key=lambda r: (-counts.get(r, 0), -r))
+    shown = set(ranked[:top]) | set(current)
+    return [r for r in choices if r in shown], [r for r in choices if r not in shown]
+
 
 def text_choices(starters, used):
     """Starter values plus any used, each once (ignoring capitals), A to Z."""
@@ -135,8 +156,9 @@ def read_form(form, known_genres):  # NEW: needs the known genres to match spell
         "release_year": year,
         "disc_format": form.get("disc_format"),
         "label": clean_text(form.get("label")),
-        "audio_format": clean_text(form.get("audio_format")),
-        "video_format": clean_text(form.get("video_format")),
+        # A value typed into "+ New" wins over the chip that was picked.
+        "audio_format": clean_text(form.get("new_audio_format")) or clean_text(form.get("audio_format")),
+        "video_format": clean_text(form.get("new_video_format")) or clean_text(form.get("video_format")),
         "aspect_ratios": ratios,
         "owned": form.get("owned") == "on",
         "notes": clean_text(form.get("notes")),
@@ -168,10 +190,16 @@ def show_form(disc, errors, disc_id=None):
     with db() as conn:
         genres = genre_choices(conn)
         suggestions = {column: used_values(conn, column) for column in SUGGESTED_COLUMNS}
-        used_ratios = [row["r"] for row in conn.execute("SELECT DISTINCT unnest(aspect_ratios) AS r FROM discs")]
+        used_ratios = {
+            row["r"]: row["n"]
+            for row in conn.execute(
+                "SELECT r, count(*) AS n FROM discs, unnest(aspect_ratios) AS r GROUP BY r ORDER BY n DESC"
+            )
+        }
     suggestions["video_format"] = text_choices(STARTER_VIDEO, suggestions["video_format"])
     suggestions["audio_format"] = text_choices(STARTER_AUDIO, suggestions["audio_format"])
     current_ratios = [round(float(r), 2) for r in disc.get("aspect_ratios") or []]
+    shown_ratios, more_ratios = ratio_chip_groups(used_ratios, current_ratios)
     return render_template(
         "disc_form.html",
         disc=disc,
@@ -182,7 +210,8 @@ def show_form(disc, errors, disc_id=None):
         rating_choices=RATING_CHOICES,
         genre_choices=genres,
         suggestions=suggestions,
-        ratio_choices=ratio_choices(used_ratios + current_ratios),
+        ratio_choices=shown_ratios,
+        more_ratios=more_ratios,
         current_ratios=current_ratios,
     )
 
