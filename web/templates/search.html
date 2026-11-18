@@ -1,27 +1,49 @@
 {% extends "base.html" %}
+{% block body_class %}fullscreen{% endblock %}
+{% block brand %}{% endblock %}
+{% block tabbar %}{% endblock %}
 {% block content %}
-<h2>Add a disc</h2>
+<nav class="top-bar">
+  <h1>Add a disc</h1>
+  <a class="icon-button" href="{{ url_for('index') }}" aria-label="Close">
+    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"></path></svg>
+  </a>
+</nav>
 
-<form method="get">
-  <input name="q" value="{{ query }}" placeholder="Search for a film" autofocus>
-  <button>Search</button>
+<form method="get" role="search">
+  <input type="search" name="q" value="{{ query }}" placeholder="Search for a film" aria-label="Search for a film" {{ "autofocus" if not query }}>
 </form>
 
-{% if error %}<p style="color: red">{{ error }}</p>{% endif %}
+{% if error %}<p class="error" role="alert">{{ error }}</p>{% endif %}
 
-{% for movie in results %}
-<p>
-  {% if movie.poster_path %}<img src="{{ poster_base }}{{ movie.poster_path }}" width="46" alt="">{% endif %}
-  {{ movie.title }}{% if movie.year %} ({{ movie.year }}){% endif %}
-  {% if movie.badge %}
-  — <span class="pill">{{ movie.badge }}</span> <a href="{{ url_for('show_disc', disc_id=movie.disc_id) }}">Open it</a>
-  {% else %}
-  — <a href="{{ url_for('add_disc', tmdb_id=movie.tmdb_id) }}">Add this one</a>
-  {% endif %}
-</p>
-{% else %}
-  {% if query and not error %}<p>No films found for "{{ query }}".</p>{% endif %}
-{% endfor %}
+{% if results %}
+<ol class="disc-list">
+  {% for movie in results %}
+  <li>
+    {% if movie.badge %}
+    <a class="disc-row is-owned" href="{{ url_for('show_disc', disc_id=movie.disc_id) }}">
+    {% else %}
+    <a class="disc-row" href="{{ url_for('add_disc', tmdb_id=movie.tmdb_id) }}">
+    {% endif %}
+      {% if movie.poster_path %}
+      <img class="thumb" src="{{ poster_base }}{{ movie.poster_path }}" alt="" loading="lazy">
+      {% else %}
+      <span class="thumb"></span>
+      {% endif %}
+      <span class="row-text">
+        <span class="row-title">{{ movie.title }}</span>
+        <span class="sub">{{ movie.year or "Year unknown" }}</span>
+      </span>
+      {% if movie.badge %}<span class="pill">{{ movie.badge }}</span>{% endif %}
+    </a>
+  </li>
+  {% endfor %}
+</ol>
+{% elif query and not error %}
+<p class="empty">No films found for “{{ query }}”.</p>
+{% endif %}
 
-<p><a href="{{ url_for('add_disc') }}">Or enter a disc by hand</a></p>
+<p class="by-hand"><a href="{{ url_for('add_disc') }}">Can’t find it? Enter a disc by hand</a></p>
+
+<p class="tmdb-credit">This product uses the TMDB API but is not endorsed or certified by TMDB.</p>
 {% endblock %}
