@@ -42,13 +42,12 @@
   h1 span { color: var(--amber); }
   .tagline { color: var(--muted); margin: 0 0 28px; font-size: 15px; }
 
-  /* ---------- the stage: disc above, player below ---------- */
+  /* ---------- the stage: disc above, slot below ---------- */
   .stage { width: 280px; }
   .disc-area {
     height: 260px;
     position: relative;
     overflow: hidden;          /* the disc vanishes at the bottom edge = the slot */
-    perspective: 700px;
   }
   .disc-mover {
     position: absolute;
@@ -57,7 +56,8 @@
     width: 220px;
     height: 220px;
     margin-left: -110px;
-    transform-style: preserve-3d;
+    /* perspective travels with the disc, so the tilt looks the same all the way down */
+    transform: perspective(700px) translateY(0) rotateX(0deg) scale(1);
     transition: transform .55s cubic-bezier(.4, 0, .2, 1);
   }
   .disc {
@@ -65,7 +65,6 @@
     height: 100%;
     border-radius: 50%;
     position: relative;
-    animation: spin 1.1s linear infinite;
     box-shadow: 0 10px 30px rgba(0, 0, 0, .55);
     background:
       radial-gradient(circle, transparent 0 15px, #d8d8d8 15px 17px, rgba(255,255,255,.35) 17px 34px, #bcbcbc 34px 36px, transparent 36px),
@@ -91,16 +90,30 @@
     background: var(--bg);
     box-shadow: inset 0 0 0 2px rgba(0,0,0,.4);
   }
+  /* Only the printed ring spins; the reflections stay still, like a real disc. */
+  .spinner {
+    position: absolute;
+    inset: 0;
+    z-index: 1;
+    animation: spin 1.4s linear infinite;
+  }
+  .spinner svg { width: 100%; height: 100%; display: block; }
+  .spinner text {
+    font-family: Oswald, sans-serif;
+    font-size: 9.5px;
+    letter-spacing: 2.2px;
+    fill: rgba(30, 30, 30, .55);
+  }
   @keyframes spin { to { transform: rotate(360deg); } }
 
   /* Inserting: tilt edge-on above the slot, then slide in */
-  .tilting .disc-mover { transform: translateY(70px) rotateX(78deg) scale(.92); }
+  .tilting .disc-mover { transform: perspective(700px) translateY(70px) rotateX(78deg) scale(.92); }
   .inserting .disc-mover {
-    transform: translateY(320px) rotateX(82deg) scale(.92);
+    transform: perspective(700px) translateY(320px) rotateX(78deg) scale(.92);
     transition-duration: .6s;
     transition-timing-function: cubic-bezier(.5, 0, .9, .4);
   }
-  .tilting .disc, .inserting .disc { animation-duration: .45s; }
+  .tilting .spinner, .inserting .spinner { animation-duration: .5s; }
 
   /* ---------- the slot ---------- */
   .slot {
@@ -142,7 +155,7 @@
   footer a { color: var(--amber); text-decoration: none; }
 
   @media (prefers-reduced-motion: reduce) {
-    .disc, .slot { animation: none; }
+    .spinner, .slot { animation: none; }
     .disc-mover { transition: none; }
   }
 </style>
@@ -154,7 +167,14 @@
   <div class="stage" id="stage">
     <div class="disc-area">
       <div class="disc-mover">
-        <div class="disc"></div>
+        <div class="disc">
+          <div class="spinner" aria-hidden="true">
+            <svg viewBox="0 0 220 220">
+              <defs><path id="ring" d="M110,110 m-48,0 a48,48 0 1,1 96,0 a48,48 0 1,1 -96,0"/></defs>
+              <text><textPath href="#ring">VIDEO VILLAGE · VIDEO VILLAGE · VIDEO VILLAGE ·</textPath></text>
+            </svg>
+          </div>
+        </div>
       </div>
     </div>
     <div class="slot"></div>
