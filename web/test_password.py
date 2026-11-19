@@ -73,3 +73,9 @@ def test_delete_without_password_is_refused(monkeypatch):
 def test_stylesheet_loads_without_password(monkeypatch):
     monkeypatch.setenv("APP_PASSWORD", "letmein")
     assert app.test_client().get("/static/style.css").status_code == 200
+
+
+def test_front_door_page_can_read_health(monkeypatch):
+    monkeypatch.setenv("APP_PASSWORD", "letmein")
+    response = app.test_client().get("/health")
+    assert response.headers["Access-Control-Allow-Origin"] == "*"

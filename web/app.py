@@ -217,8 +217,12 @@ def show_form(disc, errors, disc_id=None):
 
 @app.route("/health")
 def health():
-    """For Render: "is the app up?" Deliberately skips the password and the database."""
-    return "ok"
+    """For Render: "is the app up?" Deliberately skips the password and the database.
+
+    The front door page (GitHub Pages) polls this while the free server wakes up,
+    so any site may read it. It says nothing secret.
+    """
+    return "ok", 200, {"Access-Control-Allow-Origin": "*"}
 
 
 # Pages anyone can look at without the password (only GET requests).
