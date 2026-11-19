@@ -91,25 +91,6 @@
     background: var(--bg);
     box-shadow: inset 0 0 0 2px rgba(0,0,0,.4);
   }
-  .disc-label {
-    position: absolute;
-    inset: 0;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    padding-bottom: 118px;
-    font-family: Oswald, sans-serif;
-    font-weight: 600;
-    font-size: 30px;
-    letter-spacing: .06em;
-    color: rgba(18, 18, 18, .78);
-  }
-  .disc-label small {
-    font-size: 11px;
-    letter-spacing: .25em;
-    margin-left: 6px;
-    align-self: center;
-  }
   @keyframes spin { to { transform: rotate(360deg); } }
 
   /* Inserting: tilt edge-on above the slot, then slide in */
@@ -208,7 +189,7 @@
   <div class="stage" id="stage">
     <div class="disc-area">
       <div class="disc-mover">
-        <div class="disc"><div class="disc-label">4K<small>UHD</small></div></div>
+        <div class="disc"></div>
       </div>
     </div>
     <div class="player">
