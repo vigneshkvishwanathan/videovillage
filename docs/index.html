@@ -56,8 +56,6 @@
     width: 220px;
     height: 220px;
     margin-left: -110px;
-    /* perspective travels with the disc, so the tilt looks the same all the way down */
-    transform: perspective(700px) translateY(0) rotateX(0deg) scale(1);
     transition: transform .55s cubic-bezier(.4, 0, .2, 1);
   }
   .disc {
@@ -101,19 +99,16 @@
   .spinner text {
     font-family: Oswald, sans-serif;
     font-size: 9.5px;
-    letter-spacing: 2.2px;
     fill: rgba(30, 30, 30, .55);
   }
   @keyframes spin { to { transform: rotate(360deg); } }
 
-  /* Inserting: tilt edge-on above the slot, then slide in */
-  .tilting .disc-mover { transform: perspective(700px) translateY(70px) rotateX(78deg) scale(.92); }
+  /* Inserting: the disc stays face-on and drops straight down into the slot */
   .inserting .disc-mover {
-    transform: perspective(700px) translateY(320px) rotateX(78deg) scale(.92);
-    transition-duration: .6s;
-    transition-timing-function: cubic-bezier(.5, 0, .9, .4);
+    transform: translateY(250px);
+    transition-duration: .7s;
+    transition-timing-function: cubic-bezier(.55, 0, .75, .3);
   }
-  .tilting .spinner, .inserting .spinner { animation-duration: .5s; }
 
   /* ---------- the slot ---------- */
   .slot {
@@ -171,7 +166,7 @@
           <div class="spinner" aria-hidden="true">
             <svg viewBox="0 0 220 220">
               <defs><path id="ring" d="M110,110 m-48,0 a48,48 0 1,1 96,0 a48,48 0 1,1 -96,0"/></defs>
-              <text><textPath href="#ring">VIDEO VILLAGE · VIDEO VILLAGE · VIDEO VILLAGE ·</textPath></text>
+              <text><textPath href="#ring" textLength="300" lengthAdjust="spacing">VIDEO VILLAGE · VIDEO VILLAGE ·</textPath></text>
             </svg>
           </div>
         </div>
@@ -244,11 +239,8 @@
     const reduced = matchMedia("(prefers-reduced-motion: reduce)").matches;
     statusEl.textContent = "Ready.";
     if (!reduced) {
-      stage.classList.add("tilting");
-      await sleep(550);
-      stage.classList.remove("tilting");
       stage.classList.add("inserting");
-      await sleep(600);
+      await sleep(700);
     }
     stage.classList.add("ready");
     statusEl.textContent = "Ready. Opening Video Village…";
