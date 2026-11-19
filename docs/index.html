@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Video Village</title>
+<meta name="description" content="Video Village: a phone-first app for cataloguing and rating a 4K UHD and Blu-ray collection.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&family=Oswald:wght@500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #121212;
+    --surface: #1E1E1E;
+    --edge: #2a2a2a;
+    --amber: #F2B544;
+    --green: #0BDA51;
+    --text: #ededed;
+    --muted: #9a9a9a;
+  }
+  * { box-sizing: border-box; }
+  html, body { height: 100%; margin: 0; }
+  body {
+    background: radial-gradient(ellipse at 50% 30%, #1c1c1c 0%, var(--bg) 65%);
+    color: var(--text);
+    font-family: Inter, system-ui, sans-serif;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 24px;
+    text-align: center;
+  }
+  h1 {
+    font-family: Oswald, sans-serif;
+    font-weight: 600;
+    letter-spacing: .08em;
+    text-transform: uppercase;
+    font-size: clamp(28px, 7vw, 40px);
+    margin: 0 0 4px;
+  }
+  h1 span { color: var(--amber); }
+  .tagline { color: var(--muted); margin: 0 0 28px; font-size: 15px; }
+
+  /* ---------- the stage: disc above, slot below ---------- */
+  .stage { width: 280px; }
+  .disc-area {
+    height: 260px;
+    position: relative;
+    overflow: hidden;          /* the disc vanishes at the bottom edge = the slot */
+  }
+  .disc-mover {
+    position: absolute;
+    left: 50%;
+    top: 20px;
+    width: 220px;
+    height: 220px;
+    margin-left: -110px;
+    transition: transform .55s cubic-bezier(.4, 0, .2, 1);
+  }
+  .disc {
+    width: 100%;
+    height: 100%;
+    border-radius: 50%;
+    position: relative;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, .55);
+    background:
+      radial-gradient(circle, transparent 0 15px, #d8d8d8 15px 17px, rgba(255,255,255,.35) 17px 34px, #bcbcbc 34px 36px, transparent 36px),
+      conic-gradient(from 0deg,
+        #e9e9e9, #b9c7d6, #f3e3b0, #c9b2e0, #a8dcd0, #e9e9e9,
+        #b9c7d6, #f3e3b0, #c9b2e0, #a8dcd0, #e9e9e9);
+  }
+  .disc::before {            /* shine streak so the spin is easy to see */
+    content: "";
+    position: absolute;
+    inset: 0;
+    border-radius: 50%;
+    background: conic-gradient(from 20deg, transparent 0 40deg, rgba(255,255,255,.75) 55deg, transparent 75deg 220deg, rgba(255,255,255,.45) 235deg, transparent 250deg);
+    mix-blend-mode: soft-light;
+  }
+  .disc::after {             /* centre hole */
+    content: "";
+    position: absolute;
+    left: 50%; top: 50%;
+    width: 30px; height: 30px;
+    margin: -15px 0 0 -15px;
+    border-radius: 50%;
+    background: var(--bg);
+    box-shadow: inset 0 0 0 2px rgba(0,0,0,.4);
+  }
+  /* Only the printed ring spins; the reflections stay still, like a real disc. */
+  .spinner {
+    position: absolute;
+    inset: 0;
+    z-index: 1;
+    animation: spin 1.4s linear infinite;
+  }
+  .spinner svg { width: 100%; height: 100%; display: block; }
+  .spinner text {
+    font-family: Oswald, sans-serif;
+    font-size: 9.5px;
+    fill: rgba(30, 30, 30, .55);
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  /* Inserting: the disc stays face-on and drops straight down into the slot */
+  .inserting .disc-mover {
+    transform: translateY(250px);
+    transition-duration: .7s;
+    transition-timing-function: cubic-bezier(.55, 0, .75, .3);
+  }
+
+  /* ---------- the slot ---------- */
+  .slot {
+    position: relative;
+    z-index: 1;
+    height: 10px;
+    margin: -5px 20px 0;     /* the disc disappears right into the middle of it */
+    border-radius: 5px;
+    background: #050505;
+    box-shadow: inset 0 2px 3px rgba(0,0,0,.95), 0 1px 0 rgba(255,255,255,.07), 0 0 10px rgba(242, 181, 68, .25);
+    animation: glow 1.6s ease-in-out infinite;
+    transition: box-shadow .4s;
+  }
+  @keyframes glow { 50% { box-shadow: inset 0 2px 3px rgba(0,0,0,.95), 0 1px 0 rgba(255,255,255,.07), 0 0 4px rgba(242, 181, 68, .1); } }
+  .ready .slot {
+    animation: none;
+    box-shadow: inset 0 2px 3px rgba(0,0,0,.95), 0 0 16px rgba(11, 218, 81, .7);
+  }
+
+  /* ---------- status + links ---------- */
+  .status { margin: 26px auto 0; min-height: 44px; max-width: 320px; color: var(--muted); font-size: 15px; }
+  .actions { margin-top: 16px; min-height: 46px; }
+  .button {
+    display: inline-block;
+    padding: 12px 22px;
+    border-radius: 999px;
+    background: var(--green);
+    color: #062b12;
+    font-weight: 600;
+    text-decoration: none;
+    opacity: 0;
+    transform: translateY(6px);
+    transition: opacity .3s, transform .3s;
+    pointer-events: none;
+  }
+  .button.show { opacity: 1; transform: none; pointer-events: auto; }
+  .button.quiet { background: transparent; color: var(--amber); border: 1px solid var(--amber); }
+  footer { margin-top: 36px; color: var(--muted); font-size: 13px; line-height: 1.6; }
+  footer a { color: var(--amber); text-decoration: none; }
+
+  @media (prefers-reduced-motion: reduce) {
+    .spinner, .slot { animation: none; }
+    .disc-mover { transition: none; }
+  }
+</style>
+</head>
+<body>
+  <h1>Video <span>Village</span></h1>
+  <p class="tagline">Our 4K &amp; Blu-ray collection, rated and ranked.</p>
+
+  <div class="stage" id="stage">
+    <div class="disc-area">
+      <div class="disc-mover">
+        <div class="disc">
+          <div class="spinner" aria-hidden="true">
+            <svg viewBox="0 0 220 220">
+              <defs><path id="ring" d="M110,110 m-48,0 a48,48 0 1,1 96,0 a48,48 0 1,1 -96,0"/></defs>
+              <text><textPath href="#ring" textLength="300" lengthAdjust="spacing">VIDEO VILLAGE · VIDEO VILLAGE ·</textPath></text>
+            </svg>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="slot"></div>
+  </div>
+
+  <p class="status" id="status" aria-live="polite">Loading the collection…</p>
+  <div class="actions">
+    <a class="button" id="open" href="https://videovillage-image.onrender.com/">Open Video Village</a>
+  </div>
+
+  <footer>
+    Python · Flask · Postgres · Docker · GitHub Actions CI/CD · Render + Neon<br>
+    <a href="https://github.com/vigneshkvishwanathan/videovillage">Source on GitHub</a>
+  </footer>
+
+<script>
+  const APP = "https://videovillage-image.onrender.com";
+  const stage = document.getElementById("stage");
+  const statusEl = document.getElementById("status");
+  const openBtn = document.getElementById("open");
+  const started = Date.now();
+  const sleep = ms => new Promise(r => setTimeout(r, ms));
+  let ready = false;
+
+  // Friendlier messages the longer the free server takes to wake up.
+  const messages = [
+    [0, "Loading the collection…", "LOADING"],
+    [4000, "Waking up the server — free hosting naps when nobody's around.", "WAKING"],
+    [20000, "Almost there. Warming up the projector…", "WARMING"],
+    [45000, "Taking a bit longer than usual. Hang tight…", "WAKING"],
+  ];
+  const ticker = setInterval(() => {
+    if (ready) return;
+    const t = Date.now() - started;
+    for (const [at, text, label] of messages) {
+      if (t >= at) { statusEl.textContent = text; }
+    }
+    if (t > 90000) {                // never leave them stuck: offer the link anyway
+      openBtn.textContent = "Open it anyway";
+      openBtn.classList.add("show", "quiet");
+    }
+  }, 500);
+
+  // /health answers "ok" only once the real app is running.
+  async function isUp() {
+    const ctrl = new AbortController();
+    const timer = setTimeout(() => ctrl.abort(), 12000);
+    try {
+      const r = await fetch(APP + "/health?t=" + Date.now(), { cache: "no-store", signal: ctrl.signal });
+      return r.ok && (await r.text()).trim() === "ok";
+    } catch (e) {
+      return false;
+    } finally {
+      clearTimeout(timer);
+    }
+  }
+
+  async function run() {
+    while (!(await isUp())) await sleep(2500);
+    ready = true;
+    clearInterval(ticker);
+
+    // Let the disc spin for a moment even if the server was already awake.
+    const minSpin = 1600 - (Date.now() - started);
+    if (minSpin > 0) await sleep(minSpin);
+
+    const reduced = matchMedia("(prefers-reduced-motion: reduce)").matches;
+    statusEl.textContent = "Ready.";
+    if (!reduced) {
+      stage.classList.add("inserting");
+      await sleep(700);
+    }
+    stage.classList.add("ready");
+    statusEl.textContent = "Ready. Opening Video Village…";
+    openBtn.textContent = "Open Video Village";
+    openBtn.classList.remove("quiet");
+    openBtn.classList.add("show");
+    await sleep(1400);
+    location.href = APP + "/";
+  }
+  run();
+</script>
+</body>
+</html>
