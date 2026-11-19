@@ -221,20 +221,31 @@ def health():
     return "ok"
 
 
+# Pages anyone can look at without the password (only GET requests).
+# Everything else (Add, Edit, Delete, +1 viewing, I own it, TMDb search)
+# needs the password. New routes are locked unless they're added here.
+PUBLIC_PAGES = {"health", "index", "search_page", "show_disc", "static"}
+
+
+def needs_password(endpoint, method):
+    """True if this request changes data or uses TMDb, so it needs the password."""
+    return not (endpoint in PUBLIC_PAGES and method in ("GET", "HEAD"))
+
+
 @app.before_request
 def require_password():
-    """Put the whole site behind one shared password, when APP_PASSWORD is set.
+    """Anyone can browse; only changes need the shared password (when APP_PASSWORD is set).
 
     It isn't set on your Mac, so local development stays password-free.
     """
     password = os.environ.get("APP_PASSWORD")
-    if not password or request.endpoint == "health":
+    if not password or not needs_password(request.endpoint, request.method):
         return None
     auth = request.authorization
     if auth and hmac.compare_digest((auth.password or "").encode(), password.encode()):
         return None
     return Response(
-        "This site needs a password.",
+        "Changing the collection needs a password.",
         401,
         {"WWW-Authenticate": 'Basic realm="Video Village"'},
     )
